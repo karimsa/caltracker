@@ -4,16 +4,24 @@ import express from 'express'
 import morgan from 'morgan'
 import { Config, logger } from '@karimsa/boa'
 
-const app = express()
+import { apiRouter } from './api'
+
+// Import routes
+import './models/user'
+
+export const app = express()
 export const server = http.createServer(app)
 
 app.use(
-	morgan('dev', {
-		skip(_, res) {
-			return Config.isProductionEnv || res.statusCode > 399
-		},
-	}),
+	Config.isTestEnv
+		? morgan('dev', {
+				skip(_, res) {
+					return res.statusCode < 399
+				},
+		  })
+		: morgan('dev'),
 )
+app.use('/api/v0', apiRouter)
 
 server.on('error', error => {
 	logger.error(`Failed to start HTTP server`, error)

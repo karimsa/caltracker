@@ -1,17 +1,29 @@
 {
 	"private": true,
 	"scripts": {
-		"start": "wiz build -r src/server.js",
-		"build": "wiz build src/server.js"
+		"start": "nodemon --delay 3 -w src -x 'npm run build && node -r dotenv/config server.dist.js'",
+		"build": "wiz build src/server.js",
+		"test": "node -r dotenv/config `which wiz` test -- --runInBand"
 	},
 	"devDependencies": {
-		"@karimsa/wiz": "^0.5.1"
+		"@babel/core": "^7.5.5",
+		"@babel/preset-env": "^7.5.5",
+		"@karimsa/wiz": "^0.5.1",
+		"babel-jest": "^24.9.0",
+		"babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+		"nodemon": "^1.19.2",
+		"supertest": "^4.0.2"
 	},
 	"dependencies": {
 		"@karimsa/boa": "0.0.3",
 		"bcrypt": "^3.0.6",
+		"body-parser": "^1.19.0",
+		"connect-redis": "^3.4.2",
+		"cors": "^2.8.5",
 		"debug": "^4.1.1",
 		"express": "^4.17.1",
+		"express-session": "^1.16.2",
+		"mem": "^5.1.1",
 		"mongoose": "^5.6.12",
 		"morgan": "^1.9.1"
 	}
