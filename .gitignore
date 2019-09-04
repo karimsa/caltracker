@@ -1,0 +1,12 @@
+node_modules
+*.log
+dist
+.ssh/circleci
+.DS_Store
+.wiz
+*.dist.js
+.npmignore
+coverage
+*.xml
+.env-*
+.cache
