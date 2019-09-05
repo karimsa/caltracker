@@ -2,16 +2,38 @@ import $ from 'jquery'
 import React from 'react'
 
 import { CreateMealModal } from './create-meal-modal'
+import { User } from '../models/user'
+import { useAsync } from '../state'
 
 export function MealDashboard() {
 	const createMealModalRef = React.createRef()
+	const currentUser = useAsync(() => User.getCurrentUser())
+
+	if (currentUser.error) {
+		return (
+			<div className="row">
+				<div className="col">
+					<div className="alert alert-danger">{String(currentUser.error)}</div>
+				</div>
+			</div>
+		)
+	}
+	if (!currentUser.result) {
+		return (
+			<div className="row">
+				<div className="col">
+					<p className="small text-muted text-center mb-0">Loading ...</p>
+				</div>
+			</div>
+		)
+	}
 
 	return (
 		<>
 			<div className="row pb-5 align-items-center">
 				<div className="col">
 					<p className="lead mb-0">
-						Welcome back, <strong>{'Karim Alibhai'}</strong>!
+						Welcome back, <strong>{currentUser.result.data.name}</strong>!
 					</p>
 				</div>
 
