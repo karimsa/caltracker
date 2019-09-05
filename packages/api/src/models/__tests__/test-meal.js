@@ -17,12 +17,17 @@ test('should be able to CRUD meals', async () => {
 	{
 		const meals = await api.getMeals(normal, {
 			userID: normal.userID,
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
 		})
 		expect(meals[0].name).toEqual('Meal One')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
-		expect(meals[1].createdAt).toBeGreaterThan(meals[0].createdAt)
+		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
+			Number(new Date(meals[0].createdAt)),
+		)
 		expect(meals).toHaveLength(2)
 	}
 
@@ -34,25 +39,42 @@ test('should be able to CRUD meals', async () => {
 	{
 		const meals = await api.getMeals(normal, {
 			userID: normal.userID,
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
 		})
 		expect(meals[0].name).toEqual('Meal One (Updated)')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
-		expect(meals[1].createdAt).toBeGreaterThan(meals[0].createdAt)
+		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
+			Number(new Date(meals[0].createdAt)),
+		)
 		expect(meals).toHaveLength(2)
 	}
 
 	// normal should not be allowed to make wildcard queries
-	await expect(api.getMeals(normal)).rejects.toMatch(/not allowed/)
+	await expect(
+		api.getMeals(normal, {
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
+		}),
+	).rejects.toThrow(/not allowed/)
 
 	{
-		const meals = await api.getMeals(admin)
+		const meals = await api.getMeals(admin, {
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
+		})
 		expect(meals[0].name).toEqual('Meal One (Updated)')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
-		expect(meals[1].createdAt).toBeGreaterThan(meals[0].createdAt)
+		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
+			Number(new Date(meals[0].createdAt)),
+		)
 		expect(meals).toHaveLength(2)
 	}
 
@@ -63,15 +85,28 @@ test('should be able to CRUD meals', async () => {
 	})
 
 	// nothing should exist for the admin himself
-	expect(await api.getMeals(admin)).toHaveLength(0)
+	expect(
+		await api.getMeals(admin, {
+			userID: admin.userID,
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
+		}),
+	).toHaveLength(0)
 
 	{
-		const meals = await api.getMeals(admin)
+		const meals = await api.getMeals(admin, {
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
+		})
 		expect(meals[0].name).toEqual('Meal One')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
-		expect(meals[1].createdAt).toBeGreaterThan(meals[0].createdAt)
+		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
+			Number(new Date(meals[0].createdAt)),
+		)
 		expect(meals).toHaveLength(2)
 	}
 
@@ -81,13 +116,20 @@ test('should be able to CRUD meals', async () => {
 	{
 		const meals = await api.getMeals(normal, {
 			userID: normal.userID,
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
 		})
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals).toHaveLength(1)
 	}
 	{
-		const meals = await api.getMeals(admin)
+		const meals = await api.getMeals(admin, {
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
+		})
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals).toHaveLength(1)
@@ -97,8 +139,19 @@ test('should be able to CRUD meals', async () => {
 	await api.deleteMeal(admin, mealTwo._id)
 
 	// db should be empty now
-	expect(await api.getMeals(normal, {
-		userID: normal.userID,
-	})).toHaveLength(0)
-	expect(await api.getMeals(admin)).toHaveLength(0)
+	expect(
+		await api.getMeals(normal, {
+			userID: normal.userID,
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
+		}),
+	).toHaveLength(0)
+	expect(
+		await api.getMeals(admin, {
+			$skip: 0,
+			$limit: 10,
+			$orderBy: 'createdAt',
+		}),
+	).toHaveLength(0)
 })
