@@ -27,6 +27,17 @@ export const User = createModel('user', {
 			}
 		},
 	},
+
+	indexes: [
+		{
+			fields: {
+				email: 1,
+			},
+			options: {
+				unique: true,
+			},
+		},
+	],
 })
 
 export function isAuthenticated(req, _, next) {

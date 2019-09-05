@@ -1,7 +1,7 @@
 {
 	"private": true,
 	"scripts": {
-		"start": "nodemon --delay 3 -w src -x 'npm run build && node -r dotenv/config server.dist.js'",
+		"start": "nodemon --delay 3 --signal SIGKILL -w src -x 'npm run build && node -r dotenv/config server.dist.js'",
 		"build": "wiz build src/server.js",
 		"test": "node -r dotenv/config `which wiz` test -- --runInBand"
 	},

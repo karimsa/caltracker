@@ -9,10 +9,19 @@ mongoose.set('useCreateIndex', true)
 
 export const Connect = memoize(function() {
 	logger.verbose(`Connecting to mongo ...`)
-	return mongoose.connect(Config.string('MongoUrl'), {
-		useNewUrlParser: true,
-		bufferCommands: Config.string('MongoBufferCommands'),
-	})
+	return mongoose.connect(
+		Config.string(
+			'MongoUrl',
+			{
+				development: 'mongodb://localhost/caltracker',
+				test: 'mongodb://localhost/caltracker-test',
+			}[Config.NodeEnv],
+		),
+		{
+			useNewUrlParser: true,
+			bufferCommands: Config.string('MongoBufferCommands'),
+		},
+	)
 })
 
 export { mongoose }
