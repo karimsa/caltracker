@@ -91,6 +91,27 @@ export class API {
 			.send(user)
 			.expect(handleApiError)).body
 	}
+
+	async createMeal({ agent }, meal) {
+		return (await agent
+			.post(this.apiUrl('/meals'))
+			.send(meal)
+			.expect(handleApiError)).body
+	}
+
+	async updateMeal({ agent }, meal) {
+		return (await agent
+			.put(this.apiUrl('/meals'))
+			.send(meal)
+			.expect(handleApiError)).body
+	}
+
+	async getMeals({ agent }, query) {
+		return (await agent
+			.get(this.apiUrl('/meals'))
+			.query(query)
+			.expect(handleApiError)).body
+	}
 }
 
 export async function createApi({ apiVersion } = {}) {
