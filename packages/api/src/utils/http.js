@@ -14,10 +14,18 @@ export class APIError extends Error {
 }
 
 export function route(handler) {
-	return async (req, res) => {
+	return async (req, res, next) => {
 		try {
-			const body = await handler(req, res)
-			res.json(body)
+			let nextWasCalled = false
+			const body = await handler(req, res, error => {
+				nextWasCalled = true
+				next(error)
+			})
+			if (typeof body === 'object' && body !== null) {
+				res.json(body)
+			} else if (!nextWasCalled) {
+				throw new Error(`Route did not call next or return a valid body`)
+			}
 		} catch (error) {
 			res.status(error.status || 500)
 			res.json({
@@ -46,19 +54,19 @@ export function validateBody(dataType, types) {
 		}
 		return check
 	})
-	return (req, res, next) => {
-		try {
-			const body = req[dataType]
-			for (const check of checks) {
-				const value = body[check.name]
-				if (value == null && check.required) {
-					throw new APIError(
-						`'${check.name}' is required but was not provided`,
-						HTTPStatus.BadRequest,
-						`'${check.name}' is required but was not provided`,
-					)
-				}
+	return route((req, _, next) => {
+		const body = req[dataType]
+		for (const check of checks) {
+			const value = body[check.name]
+			if (value == null && check.required) {
+				throw new APIError(
+					`'${check.name}' is required but was not provided`,
+					HTTPStatus.BadRequest,
+					`'${check.name}' is required but was not provided`,
+				)
+			}
 
+			if (body.hasOwnProperty(check.name)) {
 				if (check.type === 'number') {
 					body[check.name] = Number(value)
 					if (isNaN(body[check.name])) {
@@ -66,17 +74,20 @@ export function validateBody(dataType, types) {
 							`'${check.name}' must be a valid number (not "${value}")`,
 						)
 					}
-				} else if (check.type !== 'string') {
+				} else if (check.type === 'string') {
+					if (!value) {
+						throw new APIError(
+							`'${check.name}' is required but was not provided`,
+							HTTPStatus.BadRequest,
+							`'${check.name}' is required but was not provided`,
+						)
+					}
+				} else {
 					throw new Error(`Cannot validate type: ${check.type}`)
 				}
 			}
-
-			next()
-		} catch (error) {
-			res.status(400)
-			res.json({
-				error: String(error.message || error),
-			})
 		}
-	}
+
+		next()
+	})
 }

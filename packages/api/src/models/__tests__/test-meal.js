@@ -14,6 +14,47 @@ test('should be able to CRUD meals', async () => {
 		numCalories: 100,
 	})
 
+	// should not allow invalid meals to be created
+	await expect(api.createMeal(normal)).rejects.toThrow(/not provided/)
+	await expect(
+		api.createMeal(normal, {
+			name: 'test',
+		}),
+	).rejects.toThrow(/not provided/)
+	await expect(
+		api.createMeal(normal, {
+			numCalories: 100,
+		}),
+	).rejects.toThrow(/not provided/)
+
+	// empty strings are not valid strings
+	await expect(
+		api.createMeal(normal, {
+			name: '',
+			numCalories: 100,
+		}),
+	).rejects.toThrow(/not provided/)
+
+	// invalid calories are also not allowed
+	await expect(
+		api.createMeal(normal, {
+			name: 'test',
+			numCalories: 0,
+		}),
+	).rejects.toThrow(/valid/)
+	await expect(
+		api.createMeal(normal, {
+			name: 'test',
+			numCalories: -1,
+		}),
+	).rejects.toThrow(/valid/)
+	await expect(
+		api.createMeal(normal, {
+			name: 'test',
+			numCalories: Math.PI,
+		}),
+	).rejects.toThrow(/valid/)
+
 	{
 		const meals = await api.getMeals(normal, {
 			userID: normal.userID,
@@ -32,10 +73,13 @@ test('should be able to CRUD meals', async () => {
 	}
 
 	// should be able to update the meal as normal user
-	await api.updateMeal(normal, {
+	const updatedMeal = await api.updateMeal(normal, {
 		_id: mealOne._id,
 		name: 'Meal One (Updated)',
 	})
+	expect(updatedMeal).toBeDefined()
+	expect(updatedMeal.name).toEqual('Meal One (Updated)')
+
 	{
 		const meals = await api.getMeals(normal, {
 			userID: normal.userID,

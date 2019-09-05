@@ -20,6 +20,21 @@ export const Meal = createModel('meal', {
 			},
 		},
 	],
+
+	hooks: {
+		pre: {
+			async validate() {
+				if (
+					this.numCalories < 0 ||
+					Math.floor(this.numCalories) !== this.numCalories ||
+					!this.numCalories ||
+					isNaN(this.numCalories)
+				) {
+					throw new Error(`Calories must be a valid positive integer value`)
+				}
+			},
+		},
+	},
 })
 
 apiRouter.post(
@@ -43,20 +58,28 @@ apiRouter.put(
 	isAuthenticated,
 	validateBody('body', {
 		_id: 'string!',
+		name: 'string',
+		numCalories: 'number',
 	}),
 	route(async req => {
-		const results = await Meal.updateOne(
-			{ _id: new bson.ObjectId(req.body._id) },
-			{ $set: req.body },
-		)
-		if (!results.ok) {
-			throw new Error(`Update query returned not ok`)
-		}
-		if (results.nModified !== 1) {
-			throw new Error(
-				`Unexpected number of documents updated: ${results.nModified} (expected 1)`,
+		const meal = await Meal.findById(req.body._id)
+		if (!meal) {
+			throw new APIError(
+				`Could not find meal with ID: ${req.body._id}`,
+				HTTPStatus.NotFound,
+				`Could not find meal`,
 			)
 		}
+
+		if (req.body.name) {
+			meal.name = req.body.name
+		}
+		if (req.body.numCalories) {
+			meal.numCalories = req.body.numCalories
+		}
+
+		await meal.save()
+		return meal
 	}),
 )
 
@@ -67,17 +90,16 @@ apiRouter.delete(
 		_id: 'string!',
 	}),
 	route(async req => {
-		const results = await Meal.deleteOne({
-			_id: new bson.ObjectId(req.query._id),
-		})
-		if (!results.ok) {
-			throw new Error(`Update query returned not ok`)
-		}
-		if (results.deletedCount !== 1) {
-			throw new Error(
-				`Unexpected number of documents deleted: ${results.deletedCount} (expected 1)`,
+		const meal = await Meal.findById(req.query._id)
+		if (!meal) {
+			throw new APIError(
+				`Could not find meal with ID: ${req.body._id}`,
+				HTTPStatus.NotFound,
+				`Could not find meal`,
 			)
 		}
+		await meal.remove()
+		return meal
 	}),
 )
 
