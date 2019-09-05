@@ -106,6 +106,13 @@ export class API {
 			.expect(handleApiError)).body
 	}
 
+	async deleteMeal({ agent }, mealID) {
+		return (await agent
+			.del(this.apiUrl('/meals'))
+			.query({ _id: mealID })
+			.expect(handleApiError)).body
+	}
+
 	async getMeals({ agent }, query) {
 		return (await agent
 			.get(this.apiUrl('/meals'))

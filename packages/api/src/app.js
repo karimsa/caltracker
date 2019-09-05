@@ -8,6 +8,7 @@ import { apiRouter } from './api'
 
 // Import routes
 import './models/user'
+import './models/meal'
 
 export const app = express()
 export const server = http.createServer(app)

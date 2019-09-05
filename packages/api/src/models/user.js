@@ -48,10 +48,11 @@ User.on('index', error => {
 })
 
 export function isAuthenticated(req, _, next) {
-	const { userID, authToken } = req.session
+	const { userID, authToken, userType } = req.session
 	const authHeader = String(req.headers.authorization).split(' ')
 	logger.debug('caltracker:auth', 'Authenticated route hit with: %O', {
 		userID,
+		userType,
 		authToken,
 		authHeader,
 	})
@@ -60,6 +61,7 @@ export function isAuthenticated(req, _, next) {
 		authHeader[0] === 'Bearer' &&
 		userID &&
 		authToken &&
+		userType &&
 		authHeader[1] === authToken
 	) {
 		return next()
@@ -110,6 +112,7 @@ apiRouter.post(
 		}
 
 		req.session.userID = String(user._id)
+		req.session.userType = user.type
 		const token = (req.session.authToken = (await randomBytes(16)).toString(
 			'hex',
 		))
