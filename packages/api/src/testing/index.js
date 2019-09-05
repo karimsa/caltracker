@@ -46,35 +46,61 @@ export class API {
 		return path.join(this.API_PREFIX, this.apiVersion, route)
 	}
 
+	async createUsers(types) {
+		return (this.authJar = await Promise.all(
+			types.map((type, index) => {
+				return this.createUser({
+					type,
+					name: `Test ${index}`,
+					email: `test-${index}@example.com`,
+					password: 'testing',
+				})
+			}),
+		))
+	}
+
 	async createUser(creds) {
-		await this.request('post', this.apiUrl('/users'))
+		const agent = request.agent(app)
+
+		await agent
+			.post(this.apiUrl('/users'))
 			.send(creds)
 			.expect(handleApiError)
 
-		return (await this.request('post', this.apiUrl('/users/login'))
+		const { userID, token } = (await agent
+			.post(this.apiUrl('/users/login'))
 			.send(creds)
+			.expect(handleApiError)).body
+
+		return {
+			userID,
+			token,
+			agent: agent.set('Authorization', `Bearer ${token}`),
+		}
+	}
+
+	async getCurrentUser({ agent }) {
+		return (await agent
+			.get(this.apiUrl('/users/current'))
 			.expect(handleApiError)).body
 	}
 
-	async getCurrentUser({ authToken }) {
-		const res = await this.request('get', this.apiUrl('/users/current'))
-			.set('Authorization', `Bearer ${authToken}`)
-			.expect(handleApiError)
-		return res.body
-	}
-
-	async updateCurrentUser({ authToken }, user) {
-		const res = await this.request('put', this.apiUrl('/users/current'))
-			.set('Authorization', `Bearer ${authToken}`)
+	async updateCurrentUser({ agent }, user) {
+		return (await agent
+			.put(this.apiUrl('/users/current'))
 			.send(user)
-			.expect(handleApiError)
-		return res.body
+			.expect(handleApiError)).body
 	}
 }
 
 export async function createApi({ apiVersion } = {}) {
 	await mongo.Connect()
-	await mongo.mongoose.connection.db.dropDatabase()
+	await mongo.mongoose.connection.dropDatabase()
+
+	for (const name of mongo.mongoose.modelNames()) {
+		const model = mongo.mongoose.model(name)
+		await model.ensureIndexes()
+	}
 
 	const api = new API(apiVersion || 'v0')
 	return api

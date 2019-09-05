@@ -3,24 +3,23 @@ import { test, createApi } from '../../testing'
 test('should allow registration and login', async () => {
 	const api = await createApi()
 
-	await api.createUser({
-		type: 'normal',
-		name: 'Test User',
-		email: 'test-0@example.com',
-		password: 'testing',
-	})
+	const [normal, manager, admin] = await api.createUsers([
+		'normal',
+		'manager',
+		'admin',
+	])
 
-	await api.createUser({
-		type: 'manager',
-		name: 'Test User',
-		email: 'test-0@example.com',
-		password: 'testing',
-	})
+	expect((await api.getCurrentUser(normal)).type).toEqual('normal')
+	expect((await api.getCurrentUser(manager)).type).toEqual('manager')
+	expect((await api.getCurrentUser(admin)).type).toEqual('admin')
 
-	await api.createUser({
-		type: 'admin',
-		name: 'Test User',
-		email: 'test-0@example.com',
-		password: 'testing',
-	})
+	// should not allow duplicates
+	await expect(
+		api.createUser({
+			type: 'normal',
+			name: 'Test User',
+			email: 'test-0@example.com',
+			password: 'testing',
+		}),
+	).rejects.toBeDefined()
 })

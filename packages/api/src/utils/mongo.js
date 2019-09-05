@@ -1,3 +1,5 @@
+import { logger, Config } from '@karimsa/boa'
+
 import { mongoose } from '../services/mongoose'
 
 export const ObjectId = mongoose.Schema.Types.ObjectId
@@ -8,7 +10,11 @@ export function createModel(name, model) {
 
 	if (model.indexes) {
 		for (const index of model.indexes) {
-			schema.index(index.fields, { ...(index.options || {}), background: true })
+			logger.debug('caltracker:db', `Creating index on ${name}: %O`, index)
+			schema.index(index.fields, {
+				...(index.options || {}),
+				background: Config.isProductionEnv,
+			})
 		}
 	}
 
@@ -27,10 +33,6 @@ export function createModel(name, model) {
 
 	for (const name of Object.keys(model.methods || {})) {
 		schema.methods[name] = model.methods[name]
-	}
-
-	if (model.preValidate) {
-		schema.pre('validate', model.preValidate)
 	}
 
 	return mongoose.model(name, schema)

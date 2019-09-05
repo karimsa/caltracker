@@ -22,6 +22,7 @@ export const User = createModel('user', {
 		toJSON() {
 			return {
 				_id: this._id,
+				type: this.type,
 				name: this.name,
 				email: this.email,
 			}
@@ -38,6 +39,12 @@ export const User = createModel('user', {
 			},
 		},
 	],
+})
+
+User.on('index', error => {
+	if (error) {
+		logger.error('User index error', error)
+	}
 })
 
 export function isAuthenticated(req, _, next) {
