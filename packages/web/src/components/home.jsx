@@ -1,9 +1,12 @@
 import React from 'react'
-import { Link, Redirect } from 'react-router-dom'
+import { Switch, Route, Redirect } from 'react-router-dom'
 
 import { removeAuthToken, hasAuthInfo } from '../models/axios'
 import { User } from '../models/user'
 import { useAsync } from '../state'
+import { Navbar } from './navbar'
+import { MealDashboard } from './meal-dashboard'
+import { NotFound } from './not-found'
 
 export function Home() {
 	const currentUser = useAsync(() => User.getCurrentUser())
@@ -50,46 +53,15 @@ export function Home() {
 
 	return (
 		<>
-			<nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-				<Link to="/" className="navbar-brand">
-					CalTracker
-				</Link>
-
-				<button
-					className="navbar-toggler"
-					type="button"
-					data-toggle="collapse"
-					data-target="#navbarSupportedContent"
-					aria-controls="navbarSupportedContent"
-					aria-expanded="false"
-					aria-label="Toggle navigation"
-				>
-					<span className="navbar-toggler-icon" />
-				</button>
-
-				<div className="collapse navbar-collapse" id="navbarSupportedContent">
-					<div className="navbar-nav ml-auto">
-						<a className="nav-item nav-link active" href="#">
-							Home
-						</a>
-						<a className="nav-item nav-link" href="#">
-							Features
-						</a>
-						<Link
-							className="nav-item nav-link"
-							to="/"
-							onClick={() => removeAuthToken()}
-						>
-							Logout
-						</Link>
-					</div>
-				</div>
-			</nav>
+			<Navbar />
 
 			<div className="container pt-5">
 				<div className="row">
 					<div className="col">
-						<p className="lead">Hello, world!</p>
+						<Switch>
+							<Route exact path="/" component={MealDashboard} />
+							<Route component={NotFound} />
+						</Switch>
 					</div>
 				</div>
 			</div>

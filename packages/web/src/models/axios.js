@@ -72,7 +72,7 @@ axios.interceptors.response.use(res => res, error => {
 		return
 	}
 
-	if (String(error).includes('Network error')) {
+	if (String(error).match(/network error/i) || (error.response && error.response.data && error.response.data.error && error.response.status >= 500)) {
 		return Promise.reject(new Error('The application is currently unavailable. Please try again later.'))
 	}
 
