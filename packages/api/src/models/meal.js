@@ -27,7 +27,7 @@ apiRouter.post(
 	isAuthenticated,
 	validateBody('body', {
 		name: 'string!',
-		numCalories: 'number',
+		numCalories: 'number!',
 	}),
 	route(async req => {
 		return Meal.create({
