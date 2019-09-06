@@ -57,3 +57,12 @@ apiRouter.head(/.*/, (_, res) => {
 })
 apiRouter.use(bodyParser.json())
 apiRouter.use(sessionParser)
+
+apiRouter.use(async (_, __, next) => {
+	const fakeDelay = Config.int('ServerFakeDelay', 0)
+	if (fakeDelay > 0) {
+		await new Promise(resolve => setTimeout(resolve, fakeDelay))
+	}
+
+	next()
+})
