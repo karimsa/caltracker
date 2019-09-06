@@ -19,7 +19,7 @@ export function MealDashboard() {
 	const [sortOrder, setSortOrder] = useState('DESC')
 	const [includeEveryone, setIncludeEveryone] = useState(false)
 	const [mealToEdit, setMealToEdit] = useState()
-	const [mealListState, mealListActions] = useAsyncAction(params => {
+	const [mealListState, mealListActions] = useAsyncAction(() => {
 		const query = {
 			userID: undefined,
 			$skip: NUM_MEALS_PER_PAGE * pageNumber,
@@ -140,8 +140,9 @@ export function MealDashboard() {
 								<div className="card">
 									<div className="card-body">
 										<h4 className="text-center p-5">
-											You don't have any meals yet. Click the 'Add meal' button
-											above to create a new meal!
+											{
+												"You don't have any meals yet. Click the 'Add meal' button above to create a new meal!"
+											}
 										</h4>
 									</div>
 								</div>
