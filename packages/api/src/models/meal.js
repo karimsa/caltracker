@@ -182,7 +182,7 @@ apiRouter.get(
 				}
 				const user = await userPromise
 				const mealData = meal.toJSON()
-				mealData.userName = user.name
+				mealData.user = user.toJSON()
 				return mealData
 			}),
 		)

@@ -69,7 +69,13 @@ export function MealDashboard() {
 
 		const meals = await Meal.find(query)
 		for (const meal of meals) {
-			const day = (meal.dayID = moment(meal.createdAt).format('Y-M-D'))
+			const day = (meal.dayID =
+				meal.userID + '-' + moment(meal.createdAt).format('Y-M-D'))
+
+			if (!meal.user) {
+				meal.user = currentUser.result.data
+			}
+
 			if (calsPerDay.has(day)) {
 				calsPerDay.set(day, calsPerDay.get(day) + meal.numCalories)
 			} else {
@@ -88,11 +94,18 @@ export function MealDashboard() {
 
 	// side effects
 	useEffect(() => {
-		if (mealListState.status !== 'inprogress') {
+		if (currentUser.result && mealListState.status !== 'inprogress') {
 			mealListActions.fetch()
 		}
 		return () => mealListActions.cancel()
-	}, [includeEveryone, sortBy, sortOrder, filterDateStart, filterDateEnd])
+	}, [
+		currentUser.result,
+		includeEveryone,
+		sortBy,
+		sortOrder,
+		filterDateStart,
+		filterDateEnd,
+	])
 	useEffect(() => {
 		if (mealToEdit && editMealModalRef.current) {
 			$(editMealModalRef.current).modal('show')
@@ -342,8 +355,7 @@ export function MealDashboard() {
 								<tbody>
 									{mealListState.result.map(meal => {
 										const calsIsOver =
-											calsPerDay.get(meal.dayID) >=
-											currentUser.result.data.dailyCalMax
+											calsPerDay.get(meal.dayID) >= meal.user.dailyCalMax
 
 										return (
 											<tr key={meal._id}>
@@ -373,7 +385,12 @@ export function MealDashboard() {
 													</span>
 													)
 												</td>
-												{isAdmin && <td>{meal.userName}</td>}
+												{isAdmin && (
+													<td>
+														{meal.user.name} ({meal.user.dailyCalMax} calorie
+														goal)
+													</td>
+												)}
 												<td>
 													<button
 														className="btn btn-success"
