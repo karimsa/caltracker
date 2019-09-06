@@ -26,7 +26,9 @@ export function Home() {
 				<div className="container">
 					<div className="row">
 						<div className="col">
-							<p className="small text-muted text-center mb-0">Loading ...</p>
+							<p className="small text-muted text-center mb-0">
+								Fetching your profile ...
+							</p>
 						</div>
 					</div>
 				</div>
