@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import moment from 'moment'
 
 import { CreateMealModal } from './create-meal-modal'
@@ -16,18 +16,28 @@ export function MealDashboard() {
 	const [pageNumber, setPageNumber] = useState(0)
 	const [sortBy, setSortBy] = useState('createdAt')
 	const [sortOrder, setSortOrder] = useState('DESC')
-	const [mealListState, mealListActions] = useAsyncAction(() =>
-		Meal.find({
-			userID: getCurrentUserID(),
+	const [includeEveryone, setIncludeEveryone] = useState(false)
+	const [mealListState, mealListActions] = useAsyncAction(params => {
+		const query = {
+			userID: undefined,
 			$skip: NUM_MEALS_PER_PAGE * pageNumber,
 			$limit: NUM_MEALS_PER_PAGE,
 			$sortBy: sortBy,
 			$sortOrder: sortOrder,
-		}),
-	)
-	if (mealListState.status === 'idle') {
-		mealListActions.fetch()
-	}
+		}
+		if (!includeEveryone) {
+			query.userID = getCurrentUserID()
+		}
+		return Meal.find(query)
+	})
+	useEffect(() => {
+		if (mealListState.status !== 'inprogress') {
+			mealListActions.fetch()
+		}
+		return () => mealListActions.cancel()
+	}, [includeEveryone])
+	const isEmpty = mealListState.result && mealListState.result.length === 0
+	const isAdmin = currentUser.result && currentUser.result.data.type === 'admin'
 
 	if (currentUser.error) {
 		return (
@@ -71,6 +81,38 @@ export function MealDashboard() {
 
 			<div className="row">
 				<div className="col">
+					<form className="form-inline justify-content-end">
+						<label className="mr-2 font-weight-bold">Date range:</label>
+						<input type="date" className="form-control" />
+						<label className="mx-2">to</label>
+						<input type="date" className="form-control" />
+
+						{isAdmin && (
+							<div className="form-check ml-2">
+								<input
+									className="form-check-input"
+									type="checkbox"
+									id="chkIncludeEveryone"
+									checked={includeEveryone}
+									onChange={evt => {
+										setIncludeEveryone(evt.target.checked)
+										setPageNumber(0)
+									}}
+								/>
+								<label
+									className="form-check-label"
+									htmlFor="chkIncludeEveryone"
+								>
+									{"Include everyone's meals"}
+								</label>
+							</div>
+						)}
+					</form>
+				</div>
+			</div>
+
+			<div className="row py-3">
+				<div className="col">
 					{(function() {
 						if (mealListState.error) {
 							return (
@@ -85,6 +127,19 @@ export function MealDashboard() {
 							)
 						}
 
+						if (isEmpty) {
+							return (
+								<div className="card">
+									<div className="card-body">
+										<h4 className="text-center p-5">
+											You don't have any meals yet. Click the 'Add meal' button
+											above to create a new meal!
+										</h4>
+									</div>
+								</div>
+							)
+						}
+
 						return (
 							<table className="table table-striped table-bordered table-hover">
 								<thead>
@@ -92,6 +147,7 @@ export function MealDashboard() {
 										<th>Name</th>
 										<th>Calories</th>
 										<th>Date</th>
+										{isAdmin && <th>User</th>}
 									</tr>
 								</thead>
 
@@ -105,6 +161,7 @@ export function MealDashboard() {
 													'ddd, MMM Do YYYY @ h:mm a',
 												)}
 											</td>
+											{isAdmin && <td>{meal.userName}</td>}
 										</tr>
 									))}
 								</tbody>

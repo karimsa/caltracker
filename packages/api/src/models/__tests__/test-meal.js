@@ -61,16 +61,31 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		})
 		expect(meals[0].name).toEqual('Meal One')
 		expect(meals[0].createdAt).toBeDefined()
+		expect(meals[0].userName).not.toBeDefined()
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
+		expect(meals[1].userName).not.toBeDefined()
 		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
 			Number(new Date(meals[0].createdAt)),
 		)
 		expect(meals).toHaveLength(2)
+	}
+
+	// should sort correctly
+	{
+		const meals = await api.getMeals(normal, {
+			userID: normal.userID,
+			$skip: 0,
+			$limit: 10,
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
+		})
+		expect(meals[0].name).toEqual('Meal Two')
+		expect(meals[1].name).toEqual('Meal One')
 	}
 
 	// should be able to update the meal as normal user
@@ -87,12 +102,14 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		})
 		expect(meals[0].name).toEqual('Meal One (Updated)')
 		expect(meals[0].createdAt).toBeDefined()
+		expect(meals[0].userName).not.toBeDefined()
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
+		expect(meals[1].userName).not.toBeDefined()
 		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
 			Number(new Date(meals[0].createdAt)),
 		)
@@ -105,7 +122,7 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		}),
 	).rejects.toThrow(/not allowed/)
 
@@ -114,12 +131,14 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		})
 		expect(meals[0].name).toEqual('Meal One (Updated)')
 		expect(meals[0].createdAt).toBeDefined()
+		expect(meals[0].userName).toBeDefined()
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
+		expect(meals[1].userName).toBeDefined()
 		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
 			Number(new Date(meals[0].createdAt)),
 		)
@@ -139,7 +158,7 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		}),
 	).toHaveLength(0)
 
@@ -148,12 +167,14 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		})
 		expect(meals[0].name).toEqual('Meal One')
 		expect(meals[0].createdAt).toBeDefined()
+		expect(meals[0].userName).toBeDefined()
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
+		expect(meals[1].userName).toBeDefined()
 		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
 			Number(new Date(meals[0].createdAt)),
 		)
@@ -169,10 +190,11 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		})
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[0].createdAt).toBeDefined()
+		expect(meals[0].userName).not.toBeDefined()
 		expect(meals).toHaveLength(1)
 	}
 	{
@@ -180,10 +202,11 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		})
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[0].createdAt).toBeDefined()
+		expect(meals[0].userName).toBeDefined()
 		expect(meals).toHaveLength(1)
 	}
 
@@ -197,7 +220,7 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		}),
 	).toHaveLength(0)
 	expect(
@@ -205,7 +228,7 @@ test('should be able to CRUD meals', async () => {
 			$skip: 0,
 			$limit: 10,
 			$sortBy: 'createdAt',
-			$sortOrder: 'DESC',
+			$sortOrder: 'ASC',
 		}),
 	).toHaveLength(0)
 })

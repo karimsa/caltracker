@@ -24,12 +24,9 @@ export function Navbar() {
 
 			<div className="collapse navbar-collapse" id="navbarSupportedContent">
 				<div className="navbar-nav ml-auto">
-					<a className="nav-item nav-link active" href="#">
-						Home
-					</a>
-					<a className="nav-item nav-link" href="#">
-						Features
-					</a>
+					<Link className="nav-item nav-link" to="/">
+						Meals
+					</Link>
 					<Link
 						className="nav-item nav-link"
 						to="/"

@@ -1,6 +1,6 @@
 import * as bson from 'bson'
 
-import { isAuthenticated } from '../models/user'
+import { isAuthenticated, User } from '../models/user'
 import { createModel, required, ObjectId } from '../utils/mongo'
 import { apiRouter } from '../api'
 import { route, validateBody, APIError, HTTPStatus } from '../utils/http'
@@ -145,11 +145,26 @@ apiRouter.get(
 				`Non-admin users are not allowed to view everyone's meals.`,
 			)
 		}
-		return Meal.find()
+
+		const userPromises = new Map()
+		const meals = await Meal.find()
 			.sort({
 				[$sortBy]: $sortOrder === 'ASC' ? 1 : -1,
 			})
 			.skip($skip)
 			.limit($limit)
+		return Promise.all(
+			meals.map(async meal => {
+				let userPromise = userPromises.get(meal.userID)
+				if (!userPromise) {
+					userPromise = User.findById(meal.userID)
+					userPromises.set(meal.userID, userPromise)
+				}
+				const user = await userPromise
+				const mealData = meal.toJSON()
+				mealData.userName = user.name
+				return mealData
+			}),
+		)
 	}),
 )
