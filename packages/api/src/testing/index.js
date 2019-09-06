@@ -54,6 +54,7 @@ export class API {
 					name: `Test ${index}`,
 					email: `test-${index}@example.com`,
 					password: 'testing',
+					dailyCalMax: 100,
 				})
 			}),
 		))

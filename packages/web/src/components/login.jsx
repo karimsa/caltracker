@@ -3,7 +3,7 @@ import { Redirect } from 'react-router-dom'
 
 import { User } from '../models/user'
 import { useAsyncAction } from '../state'
-import { setAuthToken } from '../models/axios'
+import { setAuthToken, setFirstLogin } from '../models/axios'
 
 function isEmailValid(email) {
 	const atLoc = email.indexOf('@')
@@ -19,6 +19,7 @@ export function Login() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
+	const [dailyCalMax, setDailyCalMax] = useState(1)
 	const [registerMode, setRegisterMode] = useState()
 	const [loginState, loginActions] = useAsyncAction(async () => {
 		if (registerMode) {
@@ -27,7 +28,9 @@ export function Login() {
 				name,
 				email,
 				password,
+				dailyCalMax,
 			})
+			setFirstLogin()
 		}
 
 		const { userID, token } = await User.login({
@@ -149,6 +152,21 @@ export function Login() {
 										<div className="invalid-feedback">
 											{"Passwords don't match."}
 										</div>
+									</div>
+								</div>
+							)}
+							{registerMode && (
+								<div className="form-group row">
+									<div className="col">
+										<input
+											type="number"
+											className="form-control"
+											min="1"
+											step="1"
+											value={dailyCalMax}
+											onChange={evt => setDailyCalMax(evt.target.value)}
+											disabled={isLoading}
+										/>
 									</div>
 								</div>
 							)}

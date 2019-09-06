@@ -2,6 +2,15 @@ import axiosMod from 'axios'
 
 let authToken = localStorage.getItem('authToken')
 let userID = localStorage.getItem('userID')
+let firstLogin = false
+
+export function isFirstLogin() {
+	return firstLogin
+}
+
+export function setFirstLogin() {
+	firstLogin = true
+}
 
 export function hasAuthInfo() {
 	return Boolean(authToken && userID)

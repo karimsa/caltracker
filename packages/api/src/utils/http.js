@@ -77,18 +77,18 @@ export function validateBody(dataType, types) {
 				} else if (check.type === 'string') {
 					if (!value) {
 						throw new APIError(
-							`'${check.name}' is invalid (expected string)`,
+							`'${check.name}' was not provided (got '${value}')`,
 							HTTPStatus.BadRequest,
-							`'${check.name}' is invalid`,
+							`'${check.name}' was not provided`,
 						)
 					}
 				} else if (check.type === 'date') {
 					body[check.name] = new Date(value)
 					if (String(body[check.name]) === 'Invalid Date') {
 						throw new APIError(
-							`'${check.name}' is invalid (expected date)`,
+							`'${check.name}' is not a valid date (got '${value}')`,
 							HTTPStatus.BadRequest,
-							`'${check.name}' is invalid`,
+							`'${check.name}' is not a valid date`,
 						)
 					}
 				} else {

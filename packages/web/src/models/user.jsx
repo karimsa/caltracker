@@ -10,4 +10,5 @@ export const User = {
 		}),
 	login: data(body => axios.post('/users/login', body)),
 	create: data(body => axios.post('/users', body)),
+	update: data(body => axios.put('/users', body)),
 }

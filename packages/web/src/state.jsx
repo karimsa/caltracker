@@ -17,6 +17,7 @@ export function useAsync(fn) {
 			case 'FETCH':
 				return {
 					status: 'inprogress',
+					result: state.result,
 					promise: fn()
 						.then(result => dispatch({ type: 'SET_RESULT', result }))
 						.catch(error => dispatch({ type: 'ERROR', error })),

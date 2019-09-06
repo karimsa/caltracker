@@ -20,6 +20,7 @@ test('should allow registration and login', async () => {
 			name: 'Test User',
 			email: 'test-0@example.com',
 			password: 'testing',
+			dailyCalMax: 100,
 		}),
-	).rejects.toBeDefined()
+	).rejects.toThrow(/already exists/)
 })

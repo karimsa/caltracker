@@ -4,16 +4,19 @@ import moment from 'moment'
 
 import { CreateMealModal, EditMealModal } from './meal-modals'
 import { User } from '../models/user'
-import { getCurrentUserID } from '../models/axios'
+import { getCurrentUserID, isFirstLogin } from '../models/axios'
 import { useAsync, useAsyncAction } from '../state'
 import { Meal } from '../models/meal'
 
 const NUM_MEALS_PER_PAGE = 15
+const UNIX_ONE_DAY = 1000 * 60 * 60 * 24
 
 export function MealDashboard() {
 	const createMealModalRef = React.createRef()
 	const editMealModalRef = React.createRef()
-	const currentUser = useAsync(() => User.getCurrentUser())
+
+	// local state
+	const [calsPerDay, setCalsPerDay] = useState(new Map())
 	const [pageNumber, setPageNumber] = useState(0)
 	const [sortBy, setSortBy] = useState('createdAt')
 	const [sortOrder, setSortOrder] = useState('DESC')
@@ -23,12 +26,24 @@ export function MealDashboard() {
 	const [filterDateEndFocus, setFilterDateEndFocus] = useState(false)
 	const [includeEveryone, setIncludeEveryone] = useState(false)
 	const [mealToEdit, setMealToEdit] = useState()
+	const [dailyCalMax, setDailyCalMax] = useState(0)
+
+	// async state
+	const [currentUser, currentUserActions] = useAsyncAction(async () => {
+		const res = await User.getCurrentUser()
+		setDailyCalMax(res.data.dailyCalMax)
+		return res
+	})
+	if (currentUser.status === 'idle') {
+		currentUserActions.fetch()
+	}
+
 	const [deleteMealState, deleteMealActions] = useAsyncAction(async meal => {
 		await Meal.delete(meal._id)
 		setPageNumber(0)
 		mealListActions.fetch()
 	})
-	const [mealListState, mealListActions] = useAsyncAction(() => {
+	const [mealListState, mealListActions] = useAsyncAction(async () => {
 		const query = {
 			userID: undefined,
 			minCreatedAt: undefined,
@@ -47,8 +62,31 @@ export function MealDashboard() {
 		if (filterDateEnd) {
 			query.maxCreatedAt = Number(new Date(filterDateEnd))
 		}
-		return Meal.find(query)
+
+		for (const key of calsPerDay.keys()) {
+			calsPerDay.delete(key)
+		}
+
+		const meals = await Meal.find(query)
+		for (const meal of meals) {
+			const day = (meal.dayID = moment(meal.createdAt).format('Y-M-D'))
+			if (calsPerDay.has(day)) {
+				calsPerDay.set(day, calsPerDay.get(day) + meal.numCalories)
+			} else {
+				calsPerDay.set(day, meal.numCalories)
+			}
+		}
+		return meals
 	})
+	const [dailyCalMaxState, dailyCalMaxActions] = useAsyncAction(async () => {
+		await User.update({
+			_id: getCurrentUserID(),
+			dailyCalMax,
+		})
+		currentUserActions.fetch()
+	})
+
+	// side effects
 	useEffect(() => {
 		if (mealListState.status !== 'inprogress') {
 			mealListActions.fetch()
@@ -61,21 +99,21 @@ export function MealDashboard() {
 			return () => $(editMealModalRef.current).modal('hide')
 		}
 	}, [mealToEdit, editMealModalRef.current])
+
+	// computed state
 	const isEmpty = mealListState.result && mealListState.result.length === 0
 	const isAdmin = currentUser.result && currentUser.result.data.type === 'admin'
 
-	if (currentUser.error || deleteMealState.error) {
+	if (currentUser.error) {
 		return (
 			<div className="row">
 				<div className="col">
-					<div className="alert alert-danger">
-						{String(currentUser.error || deleteMealState.error)}
-					</div>
+					<div className="alert alert-danger">{String(currentUser.error)}</div>
 				</div>
 			</div>
 		)
 	}
-	if (!currentUser.result || deleteMealState.status === 'inprogress') {
+	if (!currentUser.result) {
 		return (
 			<div className="row">
 				<div className="col">
@@ -87,14 +125,39 @@ export function MealDashboard() {
 
 	return (
 		<>
-			<div className="row pb-5 align-items-center">
+			<div className="row align-items-center">
 				<div className="col">
-					<p className="lead mb-0">
-						Welcome back, <strong>{currentUser.result.data.name}</strong>!
-					</p>
+					{currentUser.result && (
+						<p className="lead mb-0">
+							Welcome{isFirstLogin() ? '' : ' back'},{' '}
+							<strong>{currentUser.result.data.name}</strong>! Your current
+							calorie intake is expected to be below{' '}
+							<input
+								type="number"
+								className="form-control-sm form-control d-inline meal__dashboard__cal_intake"
+								value={dailyCalMax}
+								disabled={dailyCalMaxState.status === 'inprogress'}
+								onChange={evt => setDailyCalMax(evt.target.value)}
+								onBlur={() => {
+									if (dailyCalMax !== currentUser.result.data.dailyCalMax) {
+										dailyCalMaxActions.fetch()
+									}
+								}}
+							/>{' '}
+							calories per day.
+						</p>
+					)}
+					{!currentUser.result && !currentUser.error && (
+						<p className="small text-muted text-center mb-0">Loading ...</p>
+					)}
+					{currentUser.error && (
+						<div className="alert alert-danger">
+							{String(currentUser.error)}
+						</div>
+					)}
 				</div>
 
-				<div className="col text-right">
+				<div className="col-auto text-right">
 					<button
 						className="btn btn-sm btn-primary"
 						onClick={() => {
@@ -106,7 +169,17 @@ export function MealDashboard() {
 				</div>
 			</div>
 
-			<div className="row">
+			{dailyCalMaxState.error && (
+				<div className="row pt-3">
+					<div className="col">
+						<div className="alert alert-danger">
+							{String(dailyCalMaxState.error)}
+						</div>
+					</div>
+				</div>
+			)}
+
+			<div className="row pt-5">
 				<div className="col">
 					<form className="form-inline justify-content-between">
 						<div className="d-flex flex-row">
@@ -224,14 +297,17 @@ export function MealDashboard() {
 			<div className="row py-3">
 				<div className="col">
 					{(function() {
-						if (mealListState.error) {
+						if (mealListState.error || deleteMealState.error) {
 							return (
 								<div className="alert alert-danger">
-									{String(mealListState.error)}
+									{String(mealListState.error || deleteMealState.error)}
 								</div>
 							)
 						}
-						if (!mealListState.result) {
+						if (
+							!mealListState.result ||
+							deleteMealState.status === 'inprogress'
+						) {
 							return (
 								<p className="small text-muted text-center mb-0">Loading ...</p>
 							)
@@ -264,44 +340,69 @@ export function MealDashboard() {
 								</thead>
 
 								<tbody>
-									{mealListState.result.map(meal => (
-										<tr key={meal._id}>
-											<td>{meal.name}</td>
-											<td>{meal.numCalories}</td>
-											<td>
-												{moment(meal.createdAt).format(
-													'ddd, MMM Do YYYY @ h:mm a',
-												)}
-											</td>
-											{isAdmin && <td>{meal.userName}</td>}
-											<td>
-												<button
-													className="btn btn-success"
-													onClick={evt => {
-														evt.preventDefault()
-														setMealToEdit(meal)
-													}}
+									{mealListState.result.map(meal => {
+										const calsIsOver =
+											calsPerDay.get(meal.dayID) >=
+											currentUser.result.data.dailyCalMax
+
+										return (
+											<tr key={meal._id}>
+												<td>{meal.name}</td>
+												<td
+													className={
+														'text-white bg-' +
+														(calsIsOver ? 'danger' : 'success')
+													}
 												>
-													Edit
-												</button>
-												<button
-													className="btn btn-danger ml-2"
-													onClick={evt => {
-														evt.preventDefault()
-														if (
-															confirm(
-																`Are you sure you want to delete "${meal.name}"?`,
-															)
-														) {
-															deleteMealActions.fetch(meal)
+													{meal.numCalories}
+												</td>
+												<td>
+													{moment(meal.createdAt).format(
+														'ddd, MMM Do YYYY @ h:mm a',
+													)}{' '}
+													(
+													<span
+														className={
+															'text-' + (calsIsOver ? 'danger' : 'success')
 														}
-													}}
-												>
-													Delete
-												</button>
-											</td>
-										</tr>
-									))}
+													>
+														{(calsIsOver ? '+' : '') +
+															(calsPerDay.get(meal.dayID) -
+																currentUser.result.data.dailyCalMax)}{' '}
+														calories
+													</span>
+													)
+												</td>
+												{isAdmin && <td>{meal.userName}</td>}
+												<td>
+													<button
+														className="btn btn-success"
+														onClick={evt => {
+															evt.preventDefault()
+															setMealToEdit(meal)
+														}}
+													>
+														Edit
+													</button>
+													<button
+														className="btn btn-danger ml-2"
+														onClick={evt => {
+															evt.preventDefault()
+															if (
+																confirm(
+																	`Are you sure you want to delete "${meal.name}"?`,
+																)
+															) {
+																deleteMealActions.fetch(meal)
+															}
+														}}
+													>
+														Delete
+													</button>
+												</td>
+											</tr>
+										)
+									})}
 								</tbody>
 							</table>
 						)

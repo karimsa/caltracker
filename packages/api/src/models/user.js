@@ -16,6 +16,7 @@ export const User = createModel('user', {
 		name: required(String),
 		email: required(String),
 		password: required(String),
+		dailyCalMax: required(Number),
 	},
 
 	methods: {
@@ -25,6 +26,7 @@ export const User = createModel('user', {
 				type: this.type,
 				name: this.name,
 				email: this.email,
+				dailyCalMax: this.dailyCalMax,
 			}
 		},
 	},
@@ -131,15 +133,62 @@ apiRouter.post(
 		name: 'string!',
 		email: 'string!',
 		password: 'string!',
+		dailyCalMax: 'number!',
 	}),
 	route(async req => {
-		const { type, name, email, password } = req.body
+		const { type, name, email, password, dailyCalMax } = req.body
 		const passwordHash = await bcrypt.hash(password, 10)
-		return User.create({
-			type,
-			name,
-			email,
-			password: passwordHash,
-		})
+
+		try {
+			return await User.create({
+				type,
+				name,
+				email,
+				password: passwordHash,
+				dailyCalMax,
+			})
+		} catch (error) {
+			if (String(error).includes('duplicate key error')) {
+				throw new APIError(
+					`A user already exists with the email address '${email}'`,
+					HTTPStatus.BadRequest,
+					`A user already exists with the email address '${email}'`,
+				)
+			}
+			throw error
+		}
+	}),
+)
+
+apiRouter.put(
+	'/users',
+	validateBody('body', {
+		_id: 'string!',
+		dailyCalMax: 'number!',
+	}),
+	route(async req => {
+		if (
+			req.session.userID !== req.body._id &&
+			req.session.userType === 'normal'
+		) {
+			throw new APIError(
+				`Normal users may not change properties of other users`,
+				HTTPStatus.Forbidden,
+				`Normal users may not change properties of other users`,
+			)
+		}
+
+		const user = await User.findById(req.body._id)
+		if (!user) {
+			throw new APIError(
+				`Could not find user with ID: ${req.body._id}`,
+				HTTPStatus.NotFound,
+				`Could not find user`,
+			)
+		}
+
+		user.dailyCalMax = req.body.dailyCalMax
+		await user.save()
+		return user
 	}),
 )
