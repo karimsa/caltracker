@@ -60,6 +60,7 @@ apiRouter.put(
 		_id: 'string!',
 		name: 'string',
 		numCalories: 'number',
+		createdAt: 'date',
 	}),
 	route(async req => {
 		const meal = await Meal.findById(req.body._id)
@@ -76,6 +77,9 @@ apiRouter.put(
 		}
 		if (req.body.numCalories) {
 			meal.numCalories = req.body.numCalories
+		}
+		if (req.body.createdAt) {
+			meal.createdAt = req.body.createdAt
 		}
 
 		await meal.save()

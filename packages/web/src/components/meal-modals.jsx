@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import $ from 'jquery'
+import moment from 'moment'
 
 import { useAsyncAction } from '../state'
 import { Meal } from '../models/meal'
@@ -16,6 +17,8 @@ const MealModal = React.forwardRef(
 			setMealName,
 			numCalories,
 			setNumCalories,
+			createdAt,
+			setCreatedAt,
 			onClose,
 		},
 		modalRef,
@@ -105,6 +108,24 @@ const MealModal = React.forwardRef(
 										/>
 									</div>
 								</div>
+								{setCreatedAt && (
+									<div className="form-group row">
+										<div className="col-sm-2 col-form-label">Created</div>
+										<div className="col-sm-10">
+											<input
+												type="datetime-local"
+												className={
+													'form-control ' +
+													(String(new Date(createdAt)) === 'Invalid Date'
+														? 'is-invalid'
+														: 'is-valid')
+												}
+												onChange={evt => setCreatedAt(evt.target.value)}
+												value={moment(createdAt).format('Y-MM-DD[T]HH:mm')}
+											/>
+										</div>
+									</div>
+								)}
 							</form>
 						</div>
 						<div className="modal-footer">
@@ -148,6 +169,8 @@ MealModal.propTypes = {
 		PropTypes.number.isRequired,
 	]),
 	setNumCalories: PropTypes.func.isRequired,
+	createdAt: PropTypes.string,
+	setCreatedAt: PropTypes.func,
 	title: PropTypes.string.isRequired,
 	actionTitle: PropTypes.string.isRequired,
 	onClose: PropTypes.func.isRequired,
@@ -187,11 +210,13 @@ CreateMealModal.propTypes = {
 export const EditMealModal = React.forwardRef(({ meal, onClose }, modalRef) => {
 	const [mealName, setMealName] = useState(meal.name)
 	const [numCalories, setNumCalories] = useState(meal.numCalories)
+	const [createdAt, setCreatedAt] = useState(meal.createdAt)
 	const [updateMealState, updateMealActions] = useAsyncAction(() =>
 		Meal.update({
 			_id: meal._id,
 			name: mealName,
 			numCalories,
+			createdAt,
 		}),
 	)
 
@@ -206,6 +231,8 @@ export const EditMealModal = React.forwardRef(({ meal, onClose }, modalRef) => {
 			setNumCalories={setNumCalories}
 			remoteState={updateMealState}
 			remoteActions={updateMealActions}
+			createdAt={createdAt}
+			setCreatedAt={setCreatedAt}
 			onClose={onClose}
 		/>
 	)
