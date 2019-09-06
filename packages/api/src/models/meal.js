@@ -110,10 +110,11 @@ apiRouter.get(
 		userID: 'string',
 		$skip: 'number!',
 		$limit: 'number!',
-		$orderBy: 'string!',
+		$sortBy: 'string!',
+		$sortOrder: 'string!',
 	}),
 	route(async req => {
-		const { $skip, $limit, $orderBy } = req.query
+		const { $skip, $limit, $sortBy, $sortOrder } = req.query
 
 		if (req.query.userID) {
 			if (
@@ -131,7 +132,7 @@ apiRouter.get(
 				userID: new bson.ObjectId(req.query.userID),
 			})
 				.sort({
-					[$orderBy]: 1,
+					[$sortBy]: $sortOrder === 'ASC' ? 1 : -1,
 				})
 				.skip($skip)
 				.limit($limit)
@@ -146,7 +147,7 @@ apiRouter.get(
 		}
 		return Meal.find()
 			.sort({
-				[$orderBy]: 1,
+				[$sortBy]: $sortOrder === 'ASC' ? 1 : -1,
 			})
 			.skip($skip)
 			.limit($limit)

@@ -60,7 +60,8 @@ test('should be able to CRUD meals', async () => {
 			userID: normal.userID,
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		})
 		expect(meals[0].name).toEqual('Meal One')
 		expect(meals[0].createdAt).toBeDefined()
@@ -85,7 +86,8 @@ test('should be able to CRUD meals', async () => {
 			userID: normal.userID,
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		})
 		expect(meals[0].name).toEqual('Meal One (Updated)')
 		expect(meals[0].createdAt).toBeDefined()
@@ -102,7 +104,8 @@ test('should be able to CRUD meals', async () => {
 		api.getMeals(normal, {
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		}),
 	).rejects.toThrow(/not allowed/)
 
@@ -110,7 +113,8 @@ test('should be able to CRUD meals', async () => {
 		const meals = await api.getMeals(admin, {
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		})
 		expect(meals[0].name).toEqual('Meal One (Updated)')
 		expect(meals[0].createdAt).toBeDefined()
@@ -134,7 +138,8 @@ test('should be able to CRUD meals', async () => {
 			userID: admin.userID,
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		}),
 	).toHaveLength(0)
 
@@ -142,7 +147,8 @@ test('should be able to CRUD meals', async () => {
 		const meals = await api.getMeals(admin, {
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		})
 		expect(meals[0].name).toEqual('Meal One')
 		expect(meals[0].createdAt).toBeDefined()
@@ -162,7 +168,8 @@ test('should be able to CRUD meals', async () => {
 			userID: normal.userID,
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		})
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[0].createdAt).toBeDefined()
@@ -172,7 +179,8 @@ test('should be able to CRUD meals', async () => {
 		const meals = await api.getMeals(admin, {
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		})
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[0].createdAt).toBeDefined()
@@ -188,14 +196,16 @@ test('should be able to CRUD meals', async () => {
 			userID: normal.userID,
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		}),
 	).toHaveLength(0)
 	expect(
 		await api.getMeals(admin, {
 			$skip: 0,
 			$limit: 10,
-			$orderBy: 'createdAt',
+			$sortBy: 'createdAt',
+			$sortOrder: 'DESC',
 		}),
 	).toHaveLength(0)
 })
