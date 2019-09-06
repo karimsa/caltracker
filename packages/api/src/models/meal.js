@@ -108,13 +108,33 @@ apiRouter.get(
 	isAuthenticated,
 	validateBody('query', {
 		userID: 'string',
+		minCreatedAt: 'number',
+		maxCreatedAt: 'number',
 		$skip: 'number!',
 		$limit: 'number!',
 		$sortBy: 'string!',
 		$sortOrder: 'string!',
 	}),
 	route(async req => {
-		const { $skip, $limit, $sortBy, $sortOrder } = req.query
+		const {
+			minCreatedAt,
+			maxCreatedAt,
+			$skip,
+			$limit,
+			$sortBy,
+			$sortOrder,
+		} = req.query
+		const query = {}
+
+		if (typeof minCreatedAt === 'number' || typeof maxCreatedAt === 'number') {
+			query.createdAt = {}
+
+			if (typeof minCreatedAt === 'number') {
+				query.createdAt.$gte = new Date(minCreatedAt)
+			} else if (typeof maxCreatedAt === 'number') {
+				query.createdAt.$lte = new Date(maxCreatedAt)
+			}
+		}
 
 		if (req.query.userID) {
 			if (
@@ -128,17 +148,8 @@ apiRouter.get(
 				)
 			}
 
-			return Meal.find({
-				userID: new bson.ObjectId(req.query.userID),
-			})
-				.sort({
-					[$sortBy]: $sortOrder === 'ASC' ? 1 : -1,
-				})
-				.skip($skip)
-				.limit($limit)
-		}
-
-		if (req.session.userType !== 'admin') {
+			query.userID = new bson.ObjectId(req.query.userID)
+		} else if (req.session.userType !== 'admin') {
 			throw new APIError(
 				`Non-admin users are not allowed to view everyone's meals.`,
 				HTTPStatus.Forbidden,
@@ -147,12 +158,17 @@ apiRouter.get(
 		}
 
 		const userPromises = new Map()
-		const meals = await Meal.find()
+		const meals = await Meal.find(query)
 			.sort({
 				[$sortBy]: $sortOrder === 'ASC' ? 1 : -1,
 			})
 			.skip($skip)
 			.limit($limit)
+
+		if (query.userID) {
+			return meals
+		}
+
 		return Promise.all(
 			meals.map(async meal => {
 				let userPromise = userPromises.get(meal.userID)

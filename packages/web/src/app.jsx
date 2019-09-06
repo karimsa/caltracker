@@ -3,6 +3,7 @@ import 'bootstrap'
 import '@babel/polyfill'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import $ from 'jquery'
+import moment from 'moment'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom'
@@ -13,6 +14,7 @@ import { Login } from './components/login'
 
 if ((process.env.NODE_ENV || 'development') === 'development') {
 	window.$ = window.jQuery = $
+	window.moment = moment
 }
 
 function App() {

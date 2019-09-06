@@ -17,6 +17,8 @@ export function MealDashboard() {
 	const [pageNumber, setPageNumber] = useState(0)
 	const [sortBy, setSortBy] = useState('createdAt')
 	const [sortOrder, setSortOrder] = useState('DESC')
+	const [filterDateStart, setFilterDateStart] = useState('')
+	const [filterDateEnd, setFilterDateEnd] = useState('')
 	const [includeEveryone, setIncludeEveryone] = useState(false)
 	const [mealToEdit, setMealToEdit] = useState()
 	const [deleteMealState, deleteMealActions] = useAsyncAction(async meal => {
@@ -27,6 +29,8 @@ export function MealDashboard() {
 	const [mealListState, mealListActions] = useAsyncAction(() => {
 		const query = {
 			userID: undefined,
+			minCreatedAt: undefined,
+			maxCreatedAt: undefined,
 			$skip: NUM_MEALS_PER_PAGE * pageNumber,
 			$limit: NUM_MEALS_PER_PAGE,
 			$sortBy: sortBy,
@@ -35,6 +39,12 @@ export function MealDashboard() {
 		if (!includeEveryone) {
 			query.userID = getCurrentUserID()
 		}
+		if (filterDateStart) {
+			query.minCreatedAt = Number(new Date(filterDateStart))
+		}
+		if (filterDateEnd) {
+			query.maxCreatedAt = Number(new Date(filterDateEnd))
+		}
 		return Meal.find(query)
 	})
 	useEffect(() => {
@@ -42,7 +52,7 @@ export function MealDashboard() {
 			mealListActions.fetch()
 		}
 		return () => mealListActions.cancel()
-	}, [includeEveryone, sortBy, sortOrder])
+	}, [includeEveryone, sortBy, sortOrder, filterDateStart, filterDateEnd])
 	useEffect(() => {
 		if (mealToEdit && editMealModalRef.current) {
 			$(editMealModalRef.current).modal('show')
@@ -99,9 +109,23 @@ export function MealDashboard() {
 					<form className="form-inline justify-content-between">
 						<div className="d-flex flex-row">
 							<label className="mr-2 font-weight-bold">Date range:</label>
-							<input type="date" className="form-control" />
+							<input
+								type="datetime-local"
+								className="form-control"
+								value={filterDateStart}
+								onChange={evt => {
+									setFilterDateStart(evt.target.value)
+								}}
+							/>
 							<label className="mx-2">to</label>
-							<input type="date" className="form-control mr-2" />
+							<input
+								type="datetime-local"
+								className="form-control mr-2"
+								value={filterDateEnd}
+								onChange={evt => {
+									setFilterDateEnd(evt.target.value)
+								}}
+							/>
 						</div>
 
 						<div className="d-flex flex-row">

@@ -86,6 +86,21 @@ test('should be able to CRUD meals', async () => {
 		})
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[1].name).toEqual('Meal One')
+		expect(meals).toHaveLength(2)
+	}
+
+	// should filter correctly
+	{
+		const meals = await api.getMeals(normal, {
+			userID: normal.userID,
+			minCreatedAt: Number(new Date(mealOne.createdAt)) + 1,
+			$skip: 0,
+			$limit: 10,
+			$sortBy: 'createdAt',
+			$sortOrder: 'ASC',
+		})
+		expect(meals[0].name).toEqual('Meal Two')
+		expect(meals).toHaveLength(1)
 	}
 
 	// should be able to update the meal as normal user
