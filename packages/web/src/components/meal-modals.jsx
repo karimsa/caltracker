@@ -98,12 +98,20 @@ const MealModal = React.forwardRef(
 														: 'is-valid'
 													: '')
 											}
-											type="number"
+											type="text"
 											placeholder="Enter the number of calories in your meal"
-											min="1"
-											step="1"
-											value={numCalories}
-											onChange={evt => setNumCalories(Number(evt.target.value))}
+											value={String(numCalories)}
+											onChange={evt => {
+												const value = String(evt.target.value).replace(
+													/[^0-9]/g,
+													'',
+												)
+												if (value) {
+													setNumCalories(Number(value))
+												} else {
+													setNumCalories('')
+												}
+											}}
 											disabled={isLoading}
 										/>
 									</div>
