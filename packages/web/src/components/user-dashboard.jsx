@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import $ from 'jquery'
+import PropTypes from 'prop-types'
 
 import { useAsyncAction, useAsync } from '../state'
 import { User } from '../models/user'
@@ -13,6 +14,63 @@ const USER_TYPES = {
 	admin: 'Admin',
 }
 
+function UserRow({ user, onUserEdit, onError, onDelete }) {
+	const [deleteUserState, deleteUserActions] = useAsyncAction(async user => {
+		await User.delete(user._id)
+		onDelete()
+	})
+	if (deleteUserState.error) {
+		console.error(deleteUserState.error)
+		onError(`Error: Failed to delete '${user.name}'`)
+	}
+
+	return (
+		<tr>
+			<td>{USER_TYPES[user.type]}</td>
+			<td>{user.name}</td>
+			<td>{user.email}</td>
+			<td>{user.dailyCalMax}</td>
+			<th>
+				<button
+					className="btn btn-success"
+					disabled={deleteUserState.status === 'inprogress'}
+					onClick={evt => {
+						evt.preventDefault()
+						onUserEdit(user)
+					}}
+				>
+					Edit
+				</button>
+				<button
+					className="btn btn-danger ml-2"
+					disabled={deleteUserState.status === 'inprogress'}
+					onClick={evt => {
+						evt.preventDefault()
+						if (confirm(`Are you sure you want to delete "${user.name}"?`)) {
+							deleteUserActions.fetch(user)
+						}
+					}}
+				>
+					Delete
+				</button>
+			</th>
+		</tr>
+	)
+}
+
+UserRow.propTypes = {
+	user: PropTypes.shape({
+		_id: PropTypes.string.isRequired,
+		type: PropTypes.string.isRequired,
+		name: PropTypes.string.isRequired,
+		email: PropTypes.string.isRequired,
+		dailyCalMax: PropTypes.number.isRequired,
+	}),
+	onUserEdit: PropTypes.func.isRequired,
+	onError: PropTypes.func.isRequired,
+	onDelete: PropTypes.func.isRequired,
+}
+
 export function UserDashboard() {
 	// modal refs
 	const createUserModalRef = React.createRef()
@@ -21,13 +79,10 @@ export function UserDashboard() {
 	// local state
 	const [pageNumber, setPageNumber] = useState(0)
 	const [userToEdit, setUserToEdit] = useState()
+	const [error, setError] = useState()
 
 	// remote state
 	const currentUser = useAsync(() => User.getCurrentUser())
-	const [deleteUserState, deleteUserActions] = useAsyncAction(async user => {
-		await User.delete(user._id)
-		usersActions.fetch()
-	})
 	const [usersState, usersActions] = useAsyncAction(() =>
 		User.get({
 			$skip: pageNumber * NUM_USERS_PER_PAGE,
@@ -59,7 +114,9 @@ export function UserDashboard() {
 		return (
 			<div className="row">
 				<div className="col">
-					<p className="small text-muted text-center mb-0">Loading ...</p>
+					<p className="small text-muted text-center mb-0">
+						Fetching list of users ...
+					</p>
 				</div>
 			</div>
 		)
@@ -88,6 +145,14 @@ export function UserDashboard() {
 				</div>
 			</div>
 
+			{error && (
+				<div className="row">
+					<div className="col">
+						<div className="alert alert-danger">{String(error)}</div>
+					</div>
+				</div>
+			)}
+
 			<div className="row pt-5">
 				<div className="col">
 					<table className="table table-striped table-bordered">
@@ -103,40 +168,13 @@ export function UserDashboard() {
 
 						<tbody>
 							{usersState.result.map(user => (
-								<tr key={user._id}>
-									<td>{USER_TYPES[user.type]}</td>
-									<td>{user.name}</td>
-									<td>{user.email}</td>
-									<td>{user.dailyCalMax}</td>
-									<th>
-										<a
-											href="#"
-											className="btn btn-success"
-											onClick={evt => {
-												evt.preventDefault()
-												setUserToEdit(user)
-											}}
-										>
-											Edit
-										</a>
-										<a
-											href="#"
-											className="btn btn-danger ml-2"
-											onClick={evt => {
-												evt.preventDefault()
-												if (
-													confirm(
-														`Are you sure you want to delete "${user.name}"?`,
-													)
-												) {
-													deleteUserActions.fetch(user)
-												}
-											}}
-										>
-											Delete
-										</a>
-									</th>
-								</tr>
+								<UserRow
+									key={user._id}
+									user={user}
+									onUserEdit={setUserToEdit}
+									onError={setError}
+									onDelete={() => usersActions.fetch()}
+								/>
 							))}
 						</tbody>
 					</table>
