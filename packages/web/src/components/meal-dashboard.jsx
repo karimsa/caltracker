@@ -2,7 +2,7 @@ import $ from 'jquery'
 import React, { useState, useEffect } from 'react'
 import moment from 'moment'
 
-import { CreateMealModal } from './create-meal-modal'
+import { CreateMealModal, EditMealModal } from './meal-modals'
 import { User } from '../models/user'
 import { getCurrentUserID } from '../models/axios'
 import { useAsync, useAsyncAction } from '../state'
@@ -12,11 +12,13 @@ const NUM_MEALS_PER_PAGE = 15
 
 export function MealDashboard() {
 	const createMealModalRef = React.createRef()
+	const editMealModalRef = React.createRef()
 	const currentUser = useAsync(() => User.getCurrentUser())
 	const [pageNumber, setPageNumber] = useState(0)
 	const [sortBy, setSortBy] = useState('createdAt')
 	const [sortOrder, setSortOrder] = useState('DESC')
 	const [includeEveryone, setIncludeEveryone] = useState(false)
+	const [mealToEdit, setMealToEdit] = useState()
 	const [mealListState, mealListActions] = useAsyncAction(params => {
 		const query = {
 			userID: undefined,
@@ -36,6 +38,12 @@ export function MealDashboard() {
 		}
 		return () => mealListActions.cancel()
 	}, [includeEveryone])
+	useEffect(() => {
+		if (mealToEdit && editMealModalRef.current) {
+			$(editMealModalRef.current).modal('show')
+			return () => $(editMealModalRef.current).modal('hide')
+		}
+	}, [mealToEdit, editMealModalRef.current])
 	const isEmpty = mealListState.result && mealListState.result.length === 0
 	const isAdmin = currentUser.result && currentUser.result.data.type === 'admin'
 
@@ -141,19 +149,20 @@ export function MealDashboard() {
 						}
 
 						return (
-							<table className="table table-striped table-bordered table-hover">
+							<table className="table table-striped table-bordered">
 								<thead>
 									<tr>
 										<th>Name</th>
 										<th>Calories</th>
 										<th>Date</th>
 										{isAdmin && <th>User</th>}
+										<th>Actions</th>
 									</tr>
 								</thead>
 
 								<tbody>
 									{mealListState.result.map(meal => (
-										<tr key={meal._id} className="cursor-pointer">
+										<tr key={meal._id}>
 											<td>{meal.name}</td>
 											<td>{meal.numCalories}</td>
 											<td>
@@ -162,6 +171,18 @@ export function MealDashboard() {
 												)}
 											</td>
 											{isAdmin && <td>{meal.userName}</td>}
+											<td>
+												<button
+													className="btn btn-success"
+													onClick={evt => {
+														evt.preventDefault()
+														setMealToEdit(meal)
+													}}
+												>
+													Edit
+												</button>
+												<button className="btn btn-danger ml-2">Delete</button>
+											</td>
 										</tr>
 									))}
 								</tbody>
@@ -222,12 +243,23 @@ export function MealDashboard() {
 			</div>
 
 			<CreateMealModal
-				resetMeals={() => {
+				onClose={() => {
 					setPageNumber(0)
 					mealListActions.fetch()
 				}}
 				ref={createMealModalRef}
 			/>
+			{mealToEdit && (
+				<EditMealModal
+					meal={mealToEdit}
+					onClose={() => {
+						setPageNumber(0)
+						setMealToEdit(null)
+						mealListActions.fetch()
+					}}
+					ref={editMealModalRef}
+				/>
+			)}
 		</>
 	)
 }

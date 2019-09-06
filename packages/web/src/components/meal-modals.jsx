@@ -1,0 +1,222 @@
+import React, { useState } from 'react'
+import PropTypes from 'prop-types'
+import $ from 'jquery'
+
+import { useAsyncAction } from '../state'
+import { Meal } from '../models/meal'
+
+const MealModal = React.forwardRef(
+	(
+		{
+			title,
+			actionTitle,
+			remoteActions,
+			remoteState,
+			mealName,
+			setMealName,
+			numCalories,
+			setNumCalories,
+			onClose,
+		},
+		modalRef,
+	) => {
+		if (remoteState.status === 'success') {
+			$(modalRef.current)
+				.one('hidden.bs.modal', () => {
+					setMealName('')
+					setNumCalories('')
+					onClose()
+				})
+				.modal('hide')
+		}
+
+		const isLoading = remoteState.status === 'inprogress'
+
+		function submitForm(evt) {
+			evt.preventDefault()
+			remoteActions.fetch()
+		}
+
+		function closeModal(evt) {
+			evt.preventDefault()
+			$(modalRef.current).modal('hide')
+		}
+
+		return (
+			<div
+				className="modal fade"
+				tabIndex="-1"
+				role="dialog"
+				data-backdrop="static"
+				data-keyboard="false"
+				ref={modalRef}
+			>
+				<div className="modal-dialog" role="document">
+					<div className="modal-content">
+						<div className="modal-header">
+							<h5 className="modal-title">{title}</h5>
+							<button className="close" aria-label="Close" onClick={closeModal}>
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div className="modal-body">
+							<form className="container px-3">
+								{remoteState.status === 'error' && (
+									<div className="form-group row">
+										<div className="alert alert-danger col">
+											{String(remoteState.error)}
+										</div>
+									</div>
+								)}
+								<div className="form-group row">
+									<label className="col-sm-2 col-form-label">Name</label>
+									<div className="col-sm-10">
+										<input
+											className={'form-control ' + (mealName ? 'is-valid' : '')}
+											type="text"
+											placeholder="Enter the name of your meal"
+											value={mealName}
+											onChange={evt => setMealName(evt.target.value)}
+											disabled={isLoading}
+										/>
+									</div>
+								</div>
+								<div className="form-group row">
+									<label className="col-sm-2 col-form-label">Calories</label>
+									<div className="col-sm-10">
+										<input
+											className={
+												'form-control ' +
+												(typeof numCalories === 'number'
+													? numCalories < 1 ||
+													  Math.floor(numCalories) !== numCalories ||
+													  isNaN(numCalories)
+														? 'is-invalid'
+														: 'is-valid'
+													: '')
+											}
+											type="number"
+											placeholder="Enter the number of calories in your meal"
+											min="1"
+											step="1"
+											value={numCalories}
+											onChange={evt => setNumCalories(Number(evt.target.value))}
+											disabled={isLoading}
+										/>
+									</div>
+								</div>
+							</form>
+						</div>
+						<div className="modal-footer">
+							<button
+								className="btn btn-secondary"
+								disabled={isLoading}
+								// Using a manual close button so that if the modal close
+								// is attempted when we are in a loading state, it is ignored
+								onClick={closeModal}
+							>
+								Close
+							</button>
+							<button
+								className="btn btn-primary"
+								onClick={submitForm}
+								disabled={
+									isLoading ||
+									!mealName ||
+									numCalories < 1 ||
+									Math.floor(numCalories) !== numCalories
+								}
+							>
+								{actionTitle}
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		)
+	},
+)
+
+MealModal.displayName = 'MealModal'
+MealModal.propTypes = {
+	remoteActions: PropTypes.object.isRequired,
+	remoteState: PropTypes.object.isRequired,
+	mealName: PropTypes.string.isRequired,
+	setMealName: PropTypes.func.isRequired,
+	numCalories: PropTypes.oneOfType([
+		PropTypes.string.isRequired,
+		PropTypes.number.isRequired,
+	]),
+	setNumCalories: PropTypes.func.isRequired,
+	title: PropTypes.string.isRequired,
+	actionTitle: PropTypes.string.isRequired,
+	onClose: PropTypes.func.isRequired,
+}
+
+export const CreateMealModal = React.forwardRef(({ onClose }, modalRef) => {
+	const [mealName, setMealName] = useState('')
+	const [numCalories, setNumCalories] = useState('')
+	const [createMealState, createMealActions] = useAsyncAction(() =>
+		Meal.create({
+			name: mealName,
+			numCalories,
+		}),
+	)
+
+	return (
+		<MealModal
+			ref={modalRef}
+			title="Add meal"
+			actionTitle="Add"
+			mealName={mealName}
+			setMealName={setMealName}
+			numCalories={numCalories}
+			setNumCalories={setNumCalories}
+			remoteState={createMealState}
+			remoteActions={createMealActions}
+			onClose={onClose}
+		/>
+	)
+})
+
+CreateMealModal.displayName = 'CreateMealModal'
+CreateMealModal.propTypes = {
+	onClose: PropTypes.func.isRequired,
+}
+
+export const EditMealModal = React.forwardRef(({ meal, onClose }, modalRef) => {
+	const [mealName, setMealName] = useState(meal.name)
+	const [numCalories, setNumCalories] = useState(meal.numCalories)
+	const [updateMealState, updateMealActions] = useAsyncAction(() =>
+		Meal.update({
+			_id: meal._id,
+			name: mealName,
+			numCalories,
+		}),
+	)
+
+	return (
+		<MealModal
+			ref={modalRef}
+			title="Edit meal"
+			actionTitle="Save"
+			mealName={mealName}
+			setMealName={setMealName}
+			numCalories={numCalories}
+			setNumCalories={setNumCalories}
+			remoteState={updateMealState}
+			remoteActions={updateMealActions}
+			onClose={onClose}
+		/>
+	)
+})
+
+EditMealModal.displayName = 'EditMealModal'
+EditMealModal.propTypes = {
+	onClose: PropTypes.func.isRequired,
+	meal: PropTypes.shape({
+		_id: PropTypes.string.isRequired,
+		name: PropTypes.string.isRequired,
+		numCalories: PropTypes.number.isRequired,
+	}).isRequired,
+}
