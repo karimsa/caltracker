@@ -80,16 +80,30 @@ export class API {
 		}
 	}
 
+	async getUsers({ agent }, query) {
+		return (await agent
+			.get(this.apiUrl('/users'))
+			.query(query)
+			.expect(handleApiError)).body
+	}
+
 	async getCurrentUser({ agent }) {
 		return (await agent
 			.get(this.apiUrl('/users/current'))
 			.expect(handleApiError)).body
 	}
 
-	async updateCurrentUser({ agent }, user) {
+	async updateUser({ agent }, user) {
 		return (await agent
-			.put(this.apiUrl('/users/current'))
+			.put(this.apiUrl('/users'))
 			.send(user)
+			.expect(handleApiError)).body
+	}
+
+	async deleteUser({ agent }, query) {
+		return (await agent
+			.del(this.apiUrl('/users'))
+			.query(query)
 			.expect(handleApiError)).body
 	}
 

@@ -6,6 +6,7 @@ import { User } from '../models/user'
 import { useAsync } from '../state'
 import { Navbar } from './navbar'
 import { MealDashboard } from './meal-dashboard'
+import { UserDashboard } from './user-dashboard'
 import { NotFound } from './not-found'
 
 export function Home() {
@@ -60,6 +61,7 @@ export function Home() {
 					<div className="col">
 						<Switch>
 							<Route exact path="/" component={MealDashboard} />
+							<Route exact path="/users" component={UserDashboard} />
 							<Route component={NotFound} />
 						</Switch>
 					</div>

@@ -5,7 +5,7 @@ import { User } from '../models/user'
 import { useAsyncAction } from '../state'
 import { setAuthToken, setFirstLogin } from '../models/axios'
 
-function isEmailValid(email) {
+export function isEmailValid(email) {
 	const atLoc = email.indexOf('@')
 	const dotLoc = email.indexOf('.')
 	return (
@@ -98,7 +98,7 @@ export function Login() {
 							<div className="form-group row">
 								<div className="col">
 									<input
-										type="text"
+										type="email"
 										className={
 											'form-control' +
 											(email

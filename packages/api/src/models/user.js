@@ -1,12 +1,14 @@
 import * as crypto from 'crypto'
 import * as util from 'util'
 
+import * as bson from 'bson'
 import * as bcrypt from 'bcrypt'
 import { logger } from '@karimsa/boa'
 
 import { APIError, HTTPStatus, route, validateBody } from '../utils/http'
 import { createModel, required } from '../utils/mongo'
 import { apiRouter } from '../api'
+import { Meal } from './meal'
 
 const randomBytes = util.promisify(crypto.randomBytes)
 
@@ -162,9 +164,13 @@ apiRouter.post(
 
 apiRouter.put(
 	'/users',
+	isAuthenticated,
 	validateBody('body', {
 		_id: 'string!',
-		dailyCalMax: 'number!',
+		name: 'string',
+		email: 'string',
+		password: 'string',
+		dailyCalMax: 'number',
 	}),
 	route(async req => {
 		if (
@@ -172,9 +178,9 @@ apiRouter.put(
 			req.session.userType === 'normal'
 		) {
 			throw new APIError(
-				`Normal users may not change properties of other users`,
+				`Normal users are not allowed to change properties of other users`,
 				HTTPStatus.Forbidden,
-				`Normal users may not change properties of other users`,
+				`Normal users are not allowed to change properties of other users`,
 			)
 		}
 
@@ -187,8 +193,77 @@ apiRouter.put(
 			)
 		}
 
-		user.dailyCalMax = req.body.dailyCalMax
+		if (req.body.name) {
+			user.name = req.body.name
+		}
+		if (req.body.email) {
+			user.email = req.body.email
+		}
+		if (req.body.password) {
+			user.password = await bcrypt.hash(req.body.password, 10)
+		}
+		if (req.body.dailyCalMax) {
+			user.dailyCalMax = req.body.dailyCalMax
+		}
+
 		await user.save()
+		return user
+	}),
+)
+
+apiRouter.get(
+	'/users',
+	isAuthenticated,
+	validateBody('query', {
+		$skip: 'number!',
+		$limit: 'number!',
+	}),
+	route(async req => {
+		if (
+			req.session.userID !== req.body._id &&
+			req.session.userType === 'normal'
+		) {
+			throw new APIError(
+				`Normal users are not allowed to view all other users`,
+				HTTPStatus.Forbidden,
+				`Normal users are not allowed to view all other users`,
+			)
+		}
+
+		const { $skip, $limit } = req.query
+		return User.find()
+			.skip($skip)
+			.limit($limit)
+	}),
+)
+
+apiRouter.delete(
+	'/users',
+	isAuthenticated,
+	validateBody('query', {
+		_id: 'string!',
+	}),
+	route(async req => {
+		if (req.session.userType === 'normal') {
+			throw new APIError(
+				`Normal users are not allowed to delete users`,
+				HTTPStatus.Forbidden,
+				`Normal users are not allowed to delete users`,
+			)
+		}
+
+		const userID = new bson.ObjectId(req.query._id)
+		const user = await User.findById(userID)
+		if (!user) {
+			throw new APIError(
+				`Could not find user with ID: ${req.query._id}`,
+				HTTPStatus.NotFound,
+				`Could not find user`,
+			)
+		}
+
+		await user.remove()
+		await Meal.deleteMany({ userID })
 		return user
 	}),
 )
