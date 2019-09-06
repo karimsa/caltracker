@@ -12,8 +12,13 @@ export const CreateMealModal = React.forwardRef(({ resetMeals }, modalRef) => {
 		return Meal.create({
 			name: mealName,
 			numCalories,
-		}).then(() => {
-			$(modalRef.current).modal('hide')
+		}).then(async () => {
+			$(modalRef.current)
+				.one('hidden.bs.modal', () => {
+					setMealName('')
+					setNumCalories('')
+				})
+				.modal('hide')
 			resetMeals()
 		})
 	})
@@ -22,6 +27,11 @@ export const CreateMealModal = React.forwardRef(({ resetMeals }, modalRef) => {
 	function submitForm(evt) {
 		evt.preventDefault()
 		createMealActions.fetch()
+	}
+
+	function closeModal(evt) {
+		evt.preventDefault()
+		$(modalRef.current).modal('hide')
 	}
 
 	return (
@@ -37,12 +47,7 @@ export const CreateMealModal = React.forwardRef(({ resetMeals }, modalRef) => {
 				<div className="modal-content">
 					<div className="modal-header">
 						<h5 className="modal-title">Add meal</h5>
-						<button
-							type="button"
-							className="close"
-							data-dismiss="modal"
-							aria-label="Close"
-						>
+						<button className="close" aria-label="Close" onClick={closeModal}>
 							<span aria-hidden="true">&times;</span>
 						</button>
 					</div>
@@ -100,10 +105,7 @@ export const CreateMealModal = React.forwardRef(({ resetMeals }, modalRef) => {
 							disabled={isLoading}
 							// Using a manual close button so that if the modal close
 							// is attempted when we are in a loading state, it is ignored
-							onClick={evt => {
-								evt.preventDefault()
-								$(modalRef.current).modal('hide')
-							}}
+							onClick={closeModal}
 						>
 							Close
 						</button>
