@@ -164,7 +164,13 @@ export function MealDashboard() {
 				</div>
 			</div>
 
-			<CreateMealModal ref={createMealModalRef} />
+			<CreateMealModal
+				resetMeals={() => {
+					setPageNumber(0)
+					mealListActions.fetch()
+				}}
+				ref={createMealModalRef}
+			/>
 		</>
 	)
 }

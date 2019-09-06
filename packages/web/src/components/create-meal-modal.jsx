@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
+import PropTypes from 'prop-types'
 import $ from 'jquery'
 
 import { useAsyncAction } from '../state'
 import { Meal } from '../models/meal'
 
-export const CreateMealModal = React.forwardRef((_, modalRef) => {
+export const CreateMealModal = React.forwardRef(({ resetMeals }, modalRef) => {
 	const [mealName, setMealName] = useState('')
 	const [numCalories, setNumCalories] = useState('')
 	const [createMealState, createMealActions] = useAsyncAction(() => {
@@ -13,6 +14,7 @@ export const CreateMealModal = React.forwardRef((_, modalRef) => {
 			numCalories,
 		}).then(() => {
 			$(modalRef.current).modal('hide')
+			resetMeals()
 		})
 	})
 	const isLoading = createMealState.status === 'inprogress'
@@ -125,3 +127,6 @@ export const CreateMealModal = React.forwardRef((_, modalRef) => {
 })
 
 CreateMealModal.displayName = 'CreateMealModal'
+CreateMealModal.propTypes = {
+	resetMeals: PropTypes.func.isRequired,
+}
