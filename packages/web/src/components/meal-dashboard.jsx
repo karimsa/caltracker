@@ -5,18 +5,17 @@ import moment from 'moment'
 import { CreateMealModal, EditMealModal } from './meal-modals'
 import { User } from '../models/user'
 import { getCurrentUserID, isFirstLogin } from '../models/axios'
-import { useAsync, useAsyncAction } from '../state'
+import { useAsyncAction } from '../state'
 import { Meal } from '../models/meal'
 
 const NUM_MEALS_PER_PAGE = 15
-const UNIX_ONE_DAY = 1000 * 60 * 60 * 24
 
 export function MealDashboard() {
 	const createMealModalRef = React.createRef()
 	const editMealModalRef = React.createRef()
 
 	// local state
-	const [calsPerDay, setCalsPerDay] = useState(new Map())
+	const [calsPerDay] = useState(new Map())
 	const [pageNumber, setPageNumber] = useState(0)
 	const [sortBy, setSortBy] = useState('createdAt')
 	const [sortOrder, setSortOrder] = useState('DESC')

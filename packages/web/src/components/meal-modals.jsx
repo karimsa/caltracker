@@ -245,5 +245,6 @@ EditMealModal.propTypes = {
 		_id: PropTypes.string.isRequired,
 		name: PropTypes.string.isRequired,
 		numCalories: PropTypes.number.isRequired,
+		createdAt: PropTypes.string.isRequired,
 	}).isRequired,
 }

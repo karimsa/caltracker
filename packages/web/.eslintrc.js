@@ -337,6 +337,7 @@ module.exports = {
 		"no-implicit-coercion": "error"
 	},
 	"env": {
-		"browser": true
+		"browser": true,
+		"es6": true,
 	}
 }
