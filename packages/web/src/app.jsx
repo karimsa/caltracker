@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
 import '@babel/polyfill'
+import '@fortawesome/fontawesome-free/css/all.min.css'
 import $ from 'jquery'
 import React from 'react'
 import ReactDOM from 'react-dom'

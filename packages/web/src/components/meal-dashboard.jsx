@@ -42,7 +42,7 @@ export function MealDashboard() {
 			mealListActions.fetch()
 		}
 		return () => mealListActions.cancel()
-	}, [includeEveryone])
+	}, [includeEveryone, sortBy, sortOrder])
 	useEffect(() => {
 		if (mealToEdit && editMealModalRef.current) {
 			$(editMealModalRef.current).modal('show')
@@ -96,13 +96,64 @@ export function MealDashboard() {
 
 			<div className="row">
 				<div className="col">
-					<form className="form-inline justify-content-end">
-						<label className="mr-2 font-weight-bold">Date range:</label>
-						<input type="date" className="form-control" />
-						<label className="mx-2">to</label>
-						<input type="date" className="form-control" />
+					<form className="form-inline justify-content-between">
+						<div className="d-flex flex-row">
+							<label className="mr-2 font-weight-bold">Date range:</label>
+							<input type="date" className="form-control" />
+							<label className="mx-2">to</label>
+							<input type="date" className="form-control mr-2" />
+						</div>
 
-						{isAdmin && (
+						<div className="d-flex flex-row">
+							<label className="mr-2 font-weight-bold">Sort by:</label>
+							<select
+								className="form-control mr-2"
+								value={sortBy}
+								onChange={evt => {
+									setSortBy(evt.target.value)
+								}}
+							>
+								<option value="createdAt">Date created</option>
+								<option value="updatedAt">Last updated</option>
+							</select>
+
+							<div className="btn-group">
+								<a
+									href="#"
+									className={
+										'btn btn-outline-primary' +
+										(sortOrder === 'ASC' ? ' active' : '')
+									}
+									onClick={evt => {
+										evt.preventDefault()
+										setSortOrder('ASC')
+									}}
+								>
+									<i className="fas fa-arrow-alt-circle-up" />
+								</a>
+								<a
+									href="#"
+									className={
+										'btn btn-outline-primary' +
+										(sortOrder === 'ASC' ? '' : ' active')
+									}
+									onClick={evt => {
+										evt.preventDefault()
+										setSortOrder('DESC')
+									}}
+								>
+									<i className="fas fa-arrow-alt-circle-down" />
+								</a>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			{isAdmin && (
+				<div className="row justify-content-end pt-3">
+					<div className="col-auto">
+						<div className="d-flex flex-row">
 							<div className="form-check ml-2">
 								<input
 									className="form-check-input"
@@ -121,10 +172,10 @@ export function MealDashboard() {
 									{"Include everyone's meals"}
 								</label>
 							</div>
-						)}
-					</form>
+						</div>
+					</div>
 				</div>
-			</div>
+			)}
 
 			<div className="row py-3">
 				<div className="col">
