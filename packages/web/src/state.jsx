@@ -55,7 +55,7 @@ export function useAsyncAction(fn) {
 				}
 				return {
 					status: 'inprogress',
-					[kPromise]: fn()
+					[kPromise]: fn(...action.args)
 						.then(result => dispatch({ type: 'SET_RESULT', result }))
 						.catch(error => dispatch({ type: 'ERROR', error })),
 				}
@@ -89,7 +89,7 @@ export function useAsyncAction(fn) {
 	})
 
 	return [state, {
-		fetch: () => dispatch({ type: 'FETCH' }),
+		fetch: (...args) => dispatch({ type: 'FETCH', args }),
 		cancel: () => dispatch({ type: 'CANCEL' }),
 	}]
 }

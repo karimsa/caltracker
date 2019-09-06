@@ -19,6 +19,11 @@ export function MealDashboard() {
 	const [sortOrder, setSortOrder] = useState('DESC')
 	const [includeEveryone, setIncludeEveryone] = useState(false)
 	const [mealToEdit, setMealToEdit] = useState()
+	const [deleteMealState, deleteMealActions] = useAsyncAction(async meal => {
+		await Meal.delete(meal._id)
+		setPageNumber(0)
+		mealListActions.fetch()
+	})
 	const [mealListState, mealListActions] = useAsyncAction(() => {
 		const query = {
 			userID: undefined,
@@ -47,16 +52,18 @@ export function MealDashboard() {
 	const isEmpty = mealListState.result && mealListState.result.length === 0
 	const isAdmin = currentUser.result && currentUser.result.data.type === 'admin'
 
-	if (currentUser.error) {
+	if (currentUser.error || deleteMealState.error) {
 		return (
 			<div className="row">
 				<div className="col">
-					<div className="alert alert-danger">{String(currentUser.error)}</div>
+					<div className="alert alert-danger">
+						{String(currentUser.error || deleteMealState.error)}
+					</div>
 				</div>
 			</div>
 		)
 	}
-	if (!currentUser.result) {
+	if (!currentUser.result || deleteMealState.status === 'inprogress') {
 		return (
 			<div className="row">
 				<div className="col">
@@ -182,7 +189,21 @@ export function MealDashboard() {
 												>
 													Edit
 												</button>
-												<button className="btn btn-danger ml-2">Delete</button>
+												<button
+													className="btn btn-danger ml-2"
+													onClick={evt => {
+														evt.preventDefault()
+														if (
+															confirm(
+																`Are you sure you want to delete "${meal.name}"?`,
+															)
+														) {
+															deleteMealActions.fetch(meal)
+														}
+													}}
+												>
+													Delete
+												</button>
 											</td>
 										</tr>
 									))}
