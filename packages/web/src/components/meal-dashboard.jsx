@@ -19,6 +19,8 @@ export function MealDashboard() {
 	const [sortOrder, setSortOrder] = useState('DESC')
 	const [filterDateStart, setFilterDateStart] = useState('')
 	const [filterDateEnd, setFilterDateEnd] = useState('')
+	const [filterDateStartFocus, setFilterDateStartFocus] = useState(false)
+	const [filterDateEndFocus, setFilterDateEndFocus] = useState(false)
 	const [includeEveryone, setIncludeEveryone] = useState(false)
 	const [mealToEdit, setMealToEdit] = useState()
 	const [deleteMealState, deleteMealActions] = useAsyncAction(async meal => {
@@ -111,20 +113,38 @@ export function MealDashboard() {
 							<label className="mr-2 font-weight-bold">Date range:</label>
 							<input
 								type="datetime-local"
-								className="form-control"
+								className={
+									'form-control ' +
+									(filterDateStartFocus
+										? filterDateStart
+											? 'is-valid'
+											: 'is-invalid'
+										: filterDateStart
+										? 'is-valid'
+										: '')
+								}
 								value={filterDateStart}
-								onChange={evt => {
-									setFilterDateStart(evt.target.value)
-								}}
+								onChange={evt => setFilterDateStart(evt.target.value)}
+								onFocus={() => setFilterDateStartFocus(true)}
+								onBlur={() => setFilterDateStartFocus(false)}
 							/>
 							<label className="mx-2">to</label>
 							<input
 								type="datetime-local"
-								className="form-control mr-2"
+								className={
+									'form-control ' +
+									(filterDateEndFocus
+										? filterDateEnd
+											? 'is-valid'
+											: 'is-invalid'
+										: filterDateEnd
+										? 'is-valid'
+										: '')
+								}
 								value={filterDateEnd}
-								onChange={evt => {
-									setFilterDateEnd(evt.target.value)
-								}}
+								onChange={evt => setFilterDateEnd(evt.target.value)}
+								onFocus={() => setFilterDateEndFocus(true)}
+								onBlur={() => setFilterDateEndFocus(false)}
 							/>
 						</div>
 
