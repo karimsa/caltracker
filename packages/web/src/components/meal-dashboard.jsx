@@ -405,38 +405,53 @@ export function MealDashboard() {
 										/>
 									</div>
 								</div>
+
+								{isAdmin && (
+									<div className="form-group row">
+										<label className="col-sm-2 col-form-label font-weight-bold">
+											{"Include everyone's meals:"}
+										</label>
+										<div className="col-sm-10">
+											<div className="btn-group">
+												<a
+													data-test={DataTest.btnIncludeAllMeals('on')}
+													href="#"
+													className={
+														'btn btn-outline-success' +
+														(includeEveryone ? ' active' : '')
+													}
+													onClick={evt => {
+														evt.preventDefault()
+														setIncludeEveryone(true)
+														setPageNumber(0)
+													}}
+												>
+													ON
+												</a>
+												<a
+													data-test={DataTest.btnIncludeAllMeals('off')}
+													href="#"
+													className={
+														'btn btn-outline-danger' +
+														(includeEveryone ? '' : ' active')
+													}
+													onClick={evt => {
+														evt.preventDefault()
+														setIncludeEveryone(false)
+														setPageNumber(0)
+													}}
+												>
+													OFF
+												</a>
+											</div>
+										</div>
+									</div>
+								)}
 							</form>
 						</div>
 					</div>
 				</div>
 			</div>
-
-			{isAdmin && (
-				<div className="row justify-content-end pt-3">
-					<div className="col-auto">
-						<div className="d-flex flex-row">
-							<div className="form-check ml-2">
-								<input
-									className="form-check-input"
-									type="checkbox"
-									id="chkIncludeEveryone"
-									checked={includeEveryone}
-									onChange={evt => {
-										setIncludeEveryone(evt.target.checked)
-										setPageNumber(0)
-									}}
-								/>
-								<label
-									className="form-check-label"
-									htmlFor="chkIncludeEveryone"
-								>
-									{"Include everyone's meals"}
-								</label>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
 
 			<div className="row py-3">
 				<div className="col">
@@ -519,15 +534,15 @@ export function MealDashboard() {
 												}
 												//   There are no more pages ahead -> simply filter the page.
 												else if (!mealListState.result.hasNextPage) {
-												const meals = mealListState.result.meals.filter(
-													item => {
-														return item !== meal
-													},
-												)
-												mealListActions.forceSet({
-													hasNextPage: mealListState.result.hasNextPage,
-													meals,
-												})
+													const meals = mealListState.result.meals.filter(
+														item => {
+															return item !== meal
+														},
+													)
+													mealListActions.forceSet({
+														hasNextPage: mealListState.result.hasNextPage,
+														meals,
+													})
 												}
 											}}
 											onError={setError}

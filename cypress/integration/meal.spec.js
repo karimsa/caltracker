@@ -14,20 +14,25 @@ import {
 	pageNumber,
 	btnPrevPage,
 	btnNextPage,
+	registerUserType,
+	registerUserName,
+	loginEmail,
+	loginPassword,
+	registerConfirmPassword,
+	btnIncludeAllMeals,
 } from '../../packages/web/src/test'
 
 function createUser(type) {
 	cy.visit('http://localhost:1234/')
 	cy.contains('Create a new account').click()
 	cy.contains('Register')
-	cy.get('[placeholder*="name"]').type('Test User')
-	cy.get('[type="email"]').type(`${type}@${type}.co`)
-	cy.get('[type="password"]')
-		.eq(0)
-		.type('testing')
-	cy.get('[type="password"]')
-		.eq(1)
-		.type('testing')
+	select(registerUserType()).select(type)
+	select(registerUserName()).type(
+		`${type[0].toUpperCase()}${type.substr(1)} User`,
+	)
+	select(loginEmail()).type(`${type}@${type}.co`)
+	select(loginPassword()).type('testing')
+	select(registerConfirmPassword()).type('testing')
 	cy.contains('button', 'Register').click()
 }
 
@@ -48,6 +53,9 @@ function deleteMeal(name) {
 	cy.wait('@deleteMeal')
 }
 
+function logout() {
+	cy.contains('Logout').click()
+}
 
 // function loginAsUser(type) {
 // 	cy.visit('http://localhost:1234/')
@@ -253,5 +261,28 @@ describe('Meals', () => {
 		select(mealRows())
 			.eq(1)
 			.should('contain', 'test meal 4')
+
+		// login as manager
+		logout()
+		createUser('manager')
+
+		// manager sees nothing
+		cy.contains(`You don't have any meals`)
+		select(btnIncludeAllMeals('on')).should('not.exist')
+		select(btnIncludeAllMeals('off')).should('not.exist')
+
+		// login as admin
+		logout()
+		createUser('admin')
+
+		// verify that nothing is seen by default
+		cy.wait('@fetchMeals')
+		cy.contains(`You don't have any meals`)
+
+		// but it is possible to view everything
+		select(btnIncludeAllMeals('on')).click()
+		cy.wait('@fetchMeals')
+		cy.contains(`You don't have any meals`).should('not.exist')
+		select(mealRows()).should('have.length', 4) // started with 7, deleted 3 to test
 	})
 })
