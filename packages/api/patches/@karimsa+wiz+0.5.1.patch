@@ -1,0 +1,22 @@
+diff --git a/node_modules/@karimsa/wiz/cli.dist.js b/node_modules/@karimsa/wiz/cli.dist.js
+index b5a8b90..ded1e3e 100755
+--- a/node_modules/@karimsa/wiz/cli.dist.js
++++ b/node_modules/@karimsa/wiz/cli.dist.js
+@@ -743,7 +743,7 @@ async function buildCommand(argv) {
+                         node: nodeVersion
+                     }
+                 } ] ]
+-            }), {
++            }), /*{
+                 name: "rollup-plugin-terser",
+                 renderChunk: (code, chunk, options) => chunk.fileName ? terser.minify(code, {
+                     toplevel: !0,
+@@ -756,7 +756,7 @@ async function buildCommand(argv) {
+                         beautify: !0
+                     }
+                 }) : (console.warn("Skipping minification of: %O", chunk), null)
+-            }, {
++            }, */{
+                 name: "add-shebang",
+                 renderChunk(code, _, {sourcemap: sourcemap}) {
+                     const str = new MagicString(code);
