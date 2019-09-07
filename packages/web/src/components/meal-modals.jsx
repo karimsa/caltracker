@@ -4,7 +4,7 @@ import $ from 'jquery'
 import moment from 'moment'
 
 import { useAsyncAction } from '../state'
-import { Meal } from '../models/meal'
+import { Meal, MealShape } from '../models/meal'
 
 const MealModal = React.forwardRef(
 	(
@@ -29,6 +29,7 @@ const MealModal = React.forwardRef(
 					setMealName('')
 					setNumCalories('')
 					onClose()
+					remoteActions.reset()
 				})
 				.modal('hide')
 		}
@@ -116,24 +117,22 @@ const MealModal = React.forwardRef(
 										/>
 									</div>
 								</div>
-								{setCreatedAt && (
-									<div className="form-group row">
-										<div className="col-sm-2 col-form-label">Created</div>
-										<div className="col-sm-10">
-											<input
-												type="datetime-local"
-												className={
-													'form-control ' +
-													(String(new Date(createdAt)) === 'Invalid Date'
-														? 'is-invalid'
-														: 'is-valid')
-												}
-												onChange={evt => setCreatedAt(evt.target.value)}
-												value={moment(createdAt).format('Y-MM-DD[T]HH:mm')}
-											/>
-										</div>
+								<div className="form-group row">
+									<div className="col-sm-2 col-form-label">Created</div>
+									<div className="col-sm-10">
+										<input
+											type="datetime-local"
+											className={
+												'form-control ' +
+												(String(new Date(createdAt)) === 'Invalid Date'
+													? 'is-invalid'
+													: 'is-valid')
+											}
+											onChange={evt => setCreatedAt(evt.target.value)}
+											value={moment(createdAt).format('Y-MM-DD[T]HH:mm')}
+										/>
 									</div>
-								)}
+								</div>
 							</form>
 						</div>
 						<div className="modal-footer">
@@ -177,8 +176,8 @@ MealModal.propTypes = {
 		PropTypes.number.isRequired,
 	]),
 	setNumCalories: PropTypes.func.isRequired,
-	createdAt: PropTypes.string,
-	setCreatedAt: PropTypes.func,
+	createdAt: PropTypes.string.isRequired,
+	setCreatedAt: PropTypes.func.isRequired,
 	title: PropTypes.string.isRequired,
 	actionTitle: PropTypes.string.isRequired,
 	onClose: PropTypes.func.isRequired,
@@ -187,10 +186,16 @@ MealModal.propTypes = {
 export const CreateMealModal = React.forwardRef(({ onClose }, modalRef) => {
 	const [mealName, setMealName] = useState('')
 	const [numCalories, setNumCalories] = useState('')
+	const [createdAt, setCreatedAt] = useState(new Date().toUTCString())
 	const [createMealState, createMealActions] = useAsyncAction(() =>
 		Meal.create({
 			name: mealName,
 			numCalories,
+
+			// there is no timezone information in the local time string
+			// provided by the input, so we need to cast to UTC to avoid
+			// serious weirdness
+			createdAt: new Date(createdAt).toUTCString(),
 		}),
 	)
 
@@ -203,9 +208,11 @@ export const CreateMealModal = React.forwardRef(({ onClose }, modalRef) => {
 			setMealName={setMealName}
 			numCalories={numCalories}
 			setNumCalories={setNumCalories}
+			createdAt={createdAt}
+			setCreatedAt={setCreatedAt}
 			remoteState={createMealState}
 			remoteActions={createMealActions}
-			onClose={onClose}
+			onClose={() => onClose(createMealState.result)}
 		/>
 	)
 })
@@ -249,10 +256,5 @@ export const EditMealModal = React.forwardRef(({ meal, onClose }, modalRef) => {
 EditMealModal.displayName = 'EditMealModal'
 EditMealModal.propTypes = {
 	onClose: PropTypes.func.isRequired,
-	meal: PropTypes.shape({
-		_id: PropTypes.string.isRequired,
-		name: PropTypes.string.isRequired,
-		numCalories: PropTypes.number.isRequired,
-		createdAt: PropTypes.string.isRequired,
-	}).isRequired,
+	meal: MealShape,
 }

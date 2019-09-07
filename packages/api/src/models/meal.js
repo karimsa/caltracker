@@ -9,7 +9,7 @@ export const Meal = createModel('meal', {
 	fields: {
 		userID: required(ObjectId),
 		name: required(String),
-		createdAt: required(Date, Date.now),
+		createdAt: required(Date),
 		numCalories: required(Number),
 	},
 
@@ -43,11 +43,13 @@ apiRouter.post(
 	validateBody('body', {
 		name: 'string!',
 		numCalories: 'number!',
+		createdAt: 'date!',
 	}),
 	route(async req => {
 		return Meal.create({
 			name: req.body.name,
 			numCalories: req.body.numCalories,
+			createdAt: req.body.createdAt,
 			userID: new bson.ObjectId(req.session.userID),
 		})
 	}),
@@ -167,14 +169,17 @@ apiRouter.get(
 				[$sortBy]: $sortOrder === 'ASC' ? 1 : -1,
 			})
 			.skip($skip)
-			.limit($limit)
+			.limit($limit + 1)
 
 		if (query.userID) {
-			return meals
+			return {
+				meals: meals.slice(0, $limit),
+				hasNextPage: meals.length > $limit,
+			}
 		}
 
-		return Promise.all(
-			meals.map(async meal => {
+		const mappedMeals = await Promise.all(
+			meals.slice(0, $limit).map(async meal => {
 				let userPromise = userPromises.get(meal.userID)
 				if (!userPromise) {
 					userPromise = User.findById(meal.userID)
@@ -186,5 +191,9 @@ apiRouter.get(
 				return mealData
 			}),
 		)
+		return {
+			meals: mappedMeals,
+			hasNextPage: meals.length > $limit,
+		}
 	}),
 )

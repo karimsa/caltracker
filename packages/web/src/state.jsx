@@ -78,6 +78,7 @@ export function useAsyncAction(fn) {
 				if (promise && promise.cancel) {
 					promise.cancel()
 				}
+			case 'RESET':
 				return {
 					status: 'idle',
 				}
@@ -91,6 +92,8 @@ export function useAsyncAction(fn) {
 
 	return [state, {
 		fetch: (...args) => dispatch({ type: 'FETCH', args }),
+		forceSet: result => dispatch({ type: 'SET_RESULT', result }),
+		reset: () => dispatch({ type: 'RESET' }),
 		cancel: () => dispatch({ type: 'CANCEL' }),
 	}]
 }
