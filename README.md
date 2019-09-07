@@ -17,4 +17,4 @@ There is no other environment other than `local` configured for web yet, but can
 
 To run integration tests for the API, simply run `npm test` in `packages/api`. Again, all environment bits are loaded from `.env` and the code has other defaults it applies for test environments.
 
-To run E2E tests, run `npm test` in the project root. This will start the API server, the web server, and run tests with Cypress.
+To run E2E tests, run `npm test` in the project root. This will start the API server, the web server, and run tests with Cypress. To develop E2E tests, run `npm run cy:open` instead - it will open cypress in open mode and run the same api & web servers.
