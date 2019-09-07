@@ -13,5 +13,7 @@ export const MealShape = PropTypes.shape({
 	_id: PropTypes.string.isRequired,
 	name: PropTypes.string.isRequired,
 	numCalories: PropTypes.number.isRequired,
+	dayID: PropTypes.string.isRequired,
+	caloriesForDay: PropTypes.number.isRequired,
 	createdAt: PropTypes.string.isRequired,
 }).isRequired

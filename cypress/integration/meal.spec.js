@@ -61,6 +61,16 @@ describe('Meals', () => {
 		cy.clearCookies()
 		cy.clearLocalStorage()
 
+		cy.server()
+		cy.route({
+			method: 'GET',
+			url: 'http://localhost:8080/api/v0/meals**',
+		}).as('fetchMeals')
+		cy.route({
+			method: 'DELETE',
+			url: 'http://localhost:8080/api/v0/meals**',
+		}).as('deleteMeal')
+
 		cy.on('window:before:load', win => {
 			const printError = win.console.error
 			cy.stub(win.console, 'error', error => {
@@ -107,8 +117,10 @@ describe('Meals', () => {
 
 		for (let i = 0; i < 7; ++i) {
 			createMeal({ name: `test meal ${i}`, numCalories: 50 })
-			cy.contains(`test meal ${i}`)
+
 			for (let j = 0; j <= i; j++) {
+				cy.contains(`test meal ${j}`)
+				select(mealRowCalDiff(`test meal ${j}`)).should('have.length', 1)
 				select(mealRowCalDiff(`test meal ${j}`)).should(
 					'contain',
 					`+${(i + 1) * 50 - 1} calories`,
@@ -135,6 +147,7 @@ describe('Meals', () => {
 		select(btnMealRowSort('asc')).click()
 		select(btnMealRowSort('asc')).should('have.class', 'active')
 		select(btnMealRowSort('desc')).should('not.have.class', 'active')
+		cy.wait('@fetchMeals')
 		for (let i = 0; i < 7; ++i) {
 			select(mealRows())
 				.eq(i)
@@ -203,6 +216,7 @@ describe('Meals', () => {
 
 				select(btnNextPage()).click()
 				select(pageNumber()).should('contain', `Page ${page + 2}`)
+				cy.wait('@fetchMeals')
 			} else {
 				select(btnNextPage())
 					.parent()

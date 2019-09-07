@@ -18,3 +18,7 @@ There is no other environment other than `local` configured for web yet, but can
 To run integration tests for the API, simply run `npm test` in `packages/api`. Again, all environment bits are loaded from `.env` and the code has other defaults it applies for test environments.
 
 To run E2E tests, run `npm test` in the project root. This will start the API server, the web server, and run tests with Cypress. To develop E2E tests, run `npm run cy:open` instead - it will open cypress in open mode and run the same api & web servers.
+
+## Considerations
+
+ 1. **Timezones:** Currently, the application assumes that the backend & frontend are operating under the same timezone and therefore have the same concept of a 'day'. One simple way to fix this assumption would be to introduce a second user setting for timezone, which would allow the user to specify their own timezone and the backend to utilize this when making daily calorie calculations.

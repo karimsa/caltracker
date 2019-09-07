@@ -84,27 +84,6 @@ MealRow.propTypes = {
 	onError: PropTypes.func.isRequired,
 }
 
-function resetCalsPerDay({ calsPerDay, meals, currentUser }) {
-	for (const key of calsPerDay.keys()) {
-		calsPerDay.delete(key)
-	}
-
-	for (const meal of meals) {
-		const day = (meal.dayID =
-			meal.userID + '-' + moment(meal.createdAt).format('Y-M-D'))
-
-		if (!meal.user) {
-			meal.user = currentUser.result.data
-		}
-
-		if (calsPerDay.has(day)) {
-			calsPerDay.set(day, calsPerDay.get(day) + meal.numCalories)
-		} else {
-			calsPerDay.set(day, meal.numCalories)
-		}
-	}
-}
-
 // Returns true if [a, b] is sorted correctly according
 // to 'sortOrder' (only for numbers)
 function itemIsGreater(sortOrder, a, b) {
@@ -164,11 +143,13 @@ export function MealDashboard() {
 		}
 
 		const { meals, hasNextPage } = await Meal.find(query)
-		resetCalsPerDay({ calsPerDay, meals, currentUser })
-		return {
-			meals,
-			hasNextPage,
+		for (const meal of meals) {
+			calsPerDay.set(meal.dayID, meal.caloriesForDay)
+			if (!meal.user) {
+				meal.user = currentUser.result.data
+			}
 		}
+		return { meals, hasNextPage }
 	})
 	const [dailyCalMaxState, dailyCalMaxActions] = useAsyncAction(async () => {
 		await User.update({
@@ -519,7 +500,7 @@ export function MealDashboard() {
 														return item !== meal
 													},
 												)
-												resetCalsPerDay({ calsPerDay, meals, currentUser })
+
 												mealListActions.forceSet({
 													hasNextPage: mealListState.result.hasNextPage,
 													meals,
@@ -550,10 +531,10 @@ export function MealDashboard() {
 					onClose={newMeal => {
 						if (newMeal) {
 							newMeal.user = currentUser.result.data
+							calsPerDay.set(newMeal.dayID, newMeal.caloriesForDay)
 
 							if (mealListState.result.meals.length === 0) {
 								const meals = [newMeal]
-								resetCalsPerDay({ calsPerDay, meals, currentUser })
 								mealListActions.forceSet({
 									hasNextPage: false,
 									meals,
@@ -598,7 +579,6 @@ export function MealDashboard() {
 											meals.pop()
 										}
 
-										resetCalsPerDay({ calsPerDay, meals, currentUser })
 										mealListActions.forceSet({
 											hasNextPage,
 											meals,
@@ -612,7 +592,6 @@ export function MealDashboard() {
 										meals.pop()
 									}
 
-									resetCalsPerDay({ calsPerDay, meals, currentUser })
 									mealListActions.forceSet({ hasNextPage, meals })
 								}
 							}
@@ -626,7 +605,7 @@ export function MealDashboard() {
 			)}
 			{mealToEdit && (
 				<EditMealModal
-					dataTest={editMealModal(mealToEdit.name)}
+					dataTest={DataTest.editMealModal(mealToEdit.name)}
 					meal={mealToEdit}
 					onClose={() => setMealToEdit()}
 					ref={editMealModalRef}

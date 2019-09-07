@@ -4,6 +4,7 @@ import { isAuthenticated, User } from '../models/user'
 import { createModel, required, ObjectId } from '../utils/mongo'
 import { apiRouter } from '../api'
 import { route, validateBody, APIError, HTTPStatus } from '../utils/http'
+import { UserDay } from './user-day'
 
 export const Meal = createModel('meal', {
 	fields: {
@@ -46,12 +47,17 @@ apiRouter.post(
 		createdAt: 'date!',
 	}),
 	route(async req => {
-		return Meal.create({
+		const meal = await Meal.create({
 			name: req.body.name,
 			numCalories: req.body.numCalories,
 			createdAt: req.body.createdAt,
 			userID: new bson.ObjectId(req.session.userID),
 		})
+
+		const mealData = meal.toJSON()
+		mealData.dayID = UserDay.getDayIDFromMeal(meal)
+		mealData.caloriesForDay = await UserDay.addMeal(meal)
+		return mealData
 	}),
 )
 
@@ -105,6 +111,7 @@ apiRouter.delete(
 			)
 		}
 		await meal.remove()
+		await UserDay.removeMeal(meal)
 		return meal
 	}),
 )
@@ -163,7 +170,6 @@ apiRouter.get(
 			)
 		}
 
-		const userPromises = new Map()
 		const meals = await Meal.find(query)
 			.sort({
 				[$sortBy]: $sortOrder === 'ASC' ? 1 : -1,
@@ -171,28 +177,42 @@ apiRouter.get(
 			.skip($skip)
 			.limit($limit + 1)
 
-		if (query.userID) {
-			return {
-				meals: meals.slice(0, $limit),
-				hasNextPage: meals.length > $limit,
-			}
+		const userDayPromises = new Map()
+		const userPromises = new Map()
+		const mappedMeals = new Array(Math.min($limit, meals.length))
+
+		for (let i = 0; i < mappedMeals.length; ++i) {
+			const meal = meals[i]
+			const mealData = meal.toJSON()
+
+			mappedMeals[i] = (async function() {
+				// everyone needs to see daily calorie info
+				const dayID = UserDay.getDayIDFromMeal(meal)
+				let userDayPromise = userDayPromises.get(dayID)
+				if (!userDayPromise) {
+					userDayPromise = UserDay.getNumCaloriesForDay(meal)
+					userDayPromises.set(dayID, userDayPromise)
+				}
+				mealData.dayID = UserDay.getDayIDFromMeal(meal)
+				mealData.caloriesForDay = await userDayPromise
+
+				// admins need to see user information
+				if (!query.userID) {
+					let userPromise = userPromises.get(meal.userID)
+					if (!userPromise) {
+						userPromise = User.findById(meal.userID)
+						userPromises.set(meal.userID, userPromise)
+					}
+					const user = await userPromise
+					mealData.user = user.toJSON()
+				}
+
+				return mealData
+			})()
 		}
 
-		const mappedMeals = await Promise.all(
-			meals.slice(0, $limit).map(async meal => {
-				let userPromise = userPromises.get(meal.userID)
-				if (!userPromise) {
-					userPromise = User.findById(meal.userID)
-					userPromises.set(meal.userID, userPromise)
-				}
-				const user = await userPromise
-				const mealData = meal.toJSON()
-				mealData.user = user.toJSON()
-				return mealData
-			}),
-		)
 		return {
-			meals: mappedMeals,
+			meals: await Promise.all(mappedMeals),
 			hasNextPage: meals.length > $limit,
 		}
 	}),

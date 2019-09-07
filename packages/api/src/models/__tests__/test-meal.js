@@ -1,6 +1,6 @@
 import { test, expect, createApi } from '../../testing'
 
-test('should be able to CRUD meals', async () => {
+test.only('should be able to CRUD meals', async () => {
 	const api = await createApi()
 
 	const [normal, admin] = await api.createUsers(['normal', 'admin'])
@@ -71,9 +71,11 @@ test('should be able to CRUD meals', async () => {
 		expect(meals[0].name).toEqual('Meal One')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[0].user).not.toBeDefined()
+		expect(meals[0].caloriesForDay).toEqual(200)
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
 		expect(meals[1].user).not.toBeDefined()
+		expect(meals[1].caloriesForDay).toEqual(200)
 		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
 			Number(new Date(meals[0].createdAt)),
 		)
@@ -105,6 +107,7 @@ test('should be able to CRUD meals', async () => {
 			$sortOrder: 'ASC',
 		})
 		expect(meals[0].name).toEqual('Meal Two')
+		expect(meals[0].caloriesForDay).toEqual(200)
 		expect(meals).toHaveLength(1)
 	}
 
@@ -127,9 +130,11 @@ test('should be able to CRUD meals', async () => {
 		expect(meals[0].name).toEqual('Meal One (Updated)')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[0].user).not.toBeDefined()
+		expect(meals[0].caloriesForDay).toEqual(200)
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
 		expect(meals[1].user).not.toBeDefined()
+		expect(meals[1].caloriesForDay).toEqual(200)
 		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
 			Number(new Date(meals[0].createdAt)),
 		)
@@ -156,9 +161,11 @@ test('should be able to CRUD meals', async () => {
 		expect(meals[0].name).toEqual('Meal One (Updated)')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[0].user.name).toBeDefined()
+		expect(meals[0].caloriesForDay).toEqual(200)
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
 		expect(meals[1].user.name).toBeDefined()
+		expect(meals[1].caloriesForDay).toEqual(200)
 		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
 			Number(new Date(meals[0].createdAt)),
 		)
@@ -192,9 +199,11 @@ test('should be able to CRUD meals', async () => {
 		expect(meals[0].name).toEqual('Meal One')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[0].user.name).toBeDefined()
+		expect(meals[0].caloriesForDay).toEqual(200)
 		expect(meals[1].name).toEqual('Meal Two')
 		expect(meals[1].createdAt).toBeDefined()
 		expect(meals[1].user.name).toBeDefined()
+		expect(meals[1].caloriesForDay).toEqual(200)
 		expect(Number(new Date(meals[1].createdAt))).toBeGreaterThan(
 			Number(new Date(meals[0].createdAt)),
 		)
@@ -215,6 +224,7 @@ test('should be able to CRUD meals', async () => {
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[0].user).not.toBeDefined()
+		expect(meals[0].caloriesForDay).toEqual(100)
 		expect(meals).toHaveLength(1)
 	}
 	{
@@ -227,6 +237,7 @@ test('should be able to CRUD meals', async () => {
 		expect(meals[0].name).toEqual('Meal Two')
 		expect(meals[0].createdAt).toBeDefined()
 		expect(meals[0].user.name).toBeDefined()
+		expect(meals[0].caloriesForDay).toEqual(100)
 		expect(meals).toHaveLength(1)
 	}
 
