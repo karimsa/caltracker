@@ -14,7 +14,8 @@ module.exports = {
 		"sourceType": "module"
 	},
 	"globals": {
-		"cy": true
+		"cy": true,
+		"expect": true,
 	},
 	"rules": {
 		"accessor-pairs": "error",
