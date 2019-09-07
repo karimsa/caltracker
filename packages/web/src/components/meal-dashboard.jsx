@@ -501,7 +501,10 @@ export function MealDashboard() {
 													},
 												)
 												resetCalsPerDay({ calsPerDay, meals, currentUser })
-												mealListActions.forceSet(meals)
+												mealListActions.forceSet({
+													hasNextPage: mealListState.result.hasNextPage,
+													meals,
+												})
 											}}
 											onError={setError}
 										/>
@@ -529,7 +532,12 @@ export function MealDashboard() {
 						newMeal.user = currentUser.result.data
 
 						if (mealListState.result.meals.length === 0) {
-							mealListActions.forceSet([newMeal])
+							const meals = [newMeal]
+							resetCalsPerDay({ calsPerDay, meals, currentUser })
+							mealListActions.forceSet({
+								hasNextPage: false,
+								meals,
+							})
 						} else {
 							const createdAt = Number(new Date(newMeal.createdAt))
 							const firstResultCreated = Number(
@@ -552,6 +560,7 @@ export function MealDashboard() {
 									mealListState.result.meals.length < mealsPerPage ||
 									itemIsGreater(sortOrder, createdAt, lastResultCreated)
 								) {
+									let hasNextPage = mealListState.result.hasNextPage
 									const meals = [...mealListState.result.meals]
 									let i = 0
 									for (; i < meals.length; ++i) {
@@ -565,20 +574,26 @@ export function MealDashboard() {
 									meals.splice(i, 0, newMeal)
 
 									if (meals.length > mealsPerPage) {
+										hasNextPage = true
 										meals.pop()
 									}
 
 									resetCalsPerDay({ calsPerDay, meals, currentUser })
-									mealListActions.forceSet(meals)
+									mealListActions.forceSet({
+										hasNextPage,
+										meals,
+									})
 								}
 							} else if (pageNumber === 0) {
+								let hasNextPage = mealListState.result.hasNextPage
 								const meals = [newMeal, ...mealListState.result.meals]
 								if (meals.length > mealsPerPage) {
+									hasNextPage = true
 									meals.pop()
 								}
 
 								resetCalsPerDay({ calsPerDay, meals, currentUser })
-								mealListActions.forceSet(meals)
+								mealListActions.forceSet({hasNextPage,meals})
 							}
 						}
 					}
