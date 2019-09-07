@@ -2,6 +2,7 @@
 	"private": true,
 	"scripts": {
 		"lint": "eslint src/**/*.jsx",
+		"lint:watch": "nodemon --delay 5 -w src -e jsx -x 'npm run lint -- --fix'",
 		"start": "parcel src/index.html",
 		"build": "parcel build src/index.html"
 	},
