@@ -1,12 +1,15 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
+import * as DataTest from '../test'
+
 export function Pagination({ remoteState, pageNumber, setPageNumber }) {
 	return (
 		<nav aria-label="Page navigation example">
 			<ul className="pagination justify-content-center">
 				<li className={'page-item' + (pageNumber === 0 ? ' disabled' : '')}>
 					<a
+						data-test={DataTest.btnPrevPage()}
 						href="#"
 						className="page-link"
 						aria-label="Previous"
@@ -22,7 +25,9 @@ export function Pagination({ remoteState, pageNumber, setPageNumber }) {
 				</li>
 
 				<li className="page-item disabled">
-					<a className="page-link">Page {pageNumber + 1}</a>
+					<a data-test={DataTest.pageNumber()} className="page-link">
+						Page {pageNumber + 1}
+					</a>
 				</li>
 
 				<li
@@ -34,6 +39,7 @@ export function Pagination({ remoteState, pageNumber, setPageNumber }) {
 					}
 				>
 					<a
+						data-test={DataTest.btnNextPage()}
 						href="#"
 						className="page-link"
 						aria-label="Next"

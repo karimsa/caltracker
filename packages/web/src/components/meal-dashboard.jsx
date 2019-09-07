@@ -9,7 +9,7 @@ import { getCurrentUserID, isFirstLogin } from '../models/axios'
 import { useAsyncAction } from '../state'
 import { Meal, MealShape } from '../models/meal'
 import { Pagination } from './pagination'
-import { btnMealEdit, editMealModal, btnMealDelete } from '../test'
+import * as DataTest from '../test'
 
 function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 	const [deleteMealState, deleteMealActions] = useAsyncAction(async meal => {
@@ -24,14 +24,17 @@ function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 	const calsIsOver = calsPerDay >= meal.user.dailyCalMax
 
 	return (
-		<tr>
+		<tr data-test={DataTest.mealRows()}>
 			<td>{meal.name}</td>
 			<td className={'text-white bg-' + (calsIsOver ? 'danger' : 'success')}>
 				{meal.numCalories}
 			</td>
 			<td>
 				{moment(meal.createdAt).format('ddd, MMM Do YYYY @ h:mm a')} (
-				<span className={'text-' + (calsIsOver ? 'danger' : 'success')}>
+				<span
+					data-test={DataTest.mealRowCalDiff(meal.name)}
+					className={'text-' + (calsIsOver ? 'danger' : 'success')}
+				>
 					{(calsIsOver ? '+' : '') + (calsPerDay - meal.user.dailyCalMax)}{' '}
 					calories
 				</span>
@@ -44,7 +47,7 @@ function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 			)}
 			<td>
 				<button
-					data-test={btnMealEdit(meal.name)}
+					data-test={DataTest.btnMealEdit(meal.name)}
 					className="btn btn-success"
 					disabled={isLoading}
 					onClick={evt => {
@@ -55,7 +58,7 @@ function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 					Edit
 				</button>
 				<button
-					data-test={btnMealDelete(meal.name)}
+					data-test={DataTest.btnMealDelete(meal.name)}
 					className="btn btn-danger ml-2"
 					disabled={isLoading}
 					onClick={evt => {
@@ -367,6 +370,7 @@ export function MealDashboard() {
 									<div className="col-sm-10">
 										<div className="btn-group">
 											<a
+												data-test={DataTest.btnMealRowSort('asc')}
 												href="#"
 												className={
 													'btn btn-outline-primary' +
@@ -380,6 +384,7 @@ export function MealDashboard() {
 												<i className="fas fa-arrow-alt-circle-up" />
 											</a>
 											<a
+												data-test={DataTest.btnMealRowSort('desc')}
 												href="#"
 												className={
 													'btn btn-outline-primary' +
@@ -402,6 +407,7 @@ export function MealDashboard() {
 									</label>
 									<div className="col-sm-10">
 										<input
+											data-test={DataTest.pageSize()}
 											className="form-control"
 											type="number"
 											min="1"
