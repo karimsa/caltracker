@@ -66,3 +66,18 @@ apiRouter.use(async (_, __, next) => {
 
 	next()
 })
+
+if (Config.isTestEnv) {
+	apiRouter.post(
+		'/reset-db',
+		route(async () => {
+			await mongo.Connect()
+			await mongo.mongoose.connection.dropDatabase()
+
+			for (const name of mongo.mongoose.modelNames()) {
+				const model = mongo.mongoose.model(name)
+				await model.ensureIndexes()
+			}
+		}),
+	)
+}

@@ -1,3 +1,16 @@
 {
-	"private": true
+	"private": true,
+	"scripts": {
+		"api": "cd packages/api && npm start",
+		"web": "cd packages/web && npm start",
+		"cy:run": "cypress run",
+		"test": "NODE_ENV=test start-server-and-test 'npm run api' 8080 cy:web",
+		"cy:web": "start-server-and-test 'npm run web' 1234 cy:run",
+		"cy:open": "NODE_ENV=test concurrently -k 'npm run api' 'npm run web' 'cypress open'"
+	},
+	"devDependencies": {
+		"concurrently": "^4.1.2",
+		"cypress": "^3.4.1",
+		"start-server-and-test": "^1.10.0"
+	}
 }

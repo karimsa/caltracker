@@ -10,6 +10,9 @@ const port = Config.isProductionEnv
 mongo
 	.Connect()
 	.then(() => {
+		if (Config.isTestEnv) {
+			logger.info('Starting API server in test mode')
+		}
 		server.listen(port)
 	})
 	.catch(error => {

@@ -194,6 +194,7 @@ export function Login() {
 											href="#"
 											onClick={evt => {
 												evt.preventDefault()
+												loginActions.reset()
 												setRegisterMode(true)
 											}}
 										>
@@ -209,6 +210,7 @@ export function Login() {
 											href="#"
 											onClick={evt => {
 												evt.preventDefault()
+												loginActions.reset()
 												setRegisterMode(false)
 											}}
 										>

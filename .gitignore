@@ -10,3 +10,6 @@ coverage
 *.xml
 .env-*
 .cache
+cypress/fixtures
+cypress/plugins
+cypress/support
