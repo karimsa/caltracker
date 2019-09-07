@@ -1,3 +1,11 @@
+import {
+	select,
+	loginEmail,
+	loginPassword,
+	registerUserName,
+	registerConfirmPassword,
+} from '../../packages/web/src/test'
+
 describe('Authentication', () => {
 	beforeEach(() => {
 		cy.request('POST', 'http://localhost:8080/api/v0/reset-db')
@@ -12,8 +20,8 @@ describe('Authentication', () => {
 		cy.location('pathname').should('eq', '/login')
 		cy.contains('Sign in')
 		cy.contains('Error').should('not.exist')
-		cy.get('[type="email"]').type('test@test.co')
-		cy.get('[type="password"]').type('testing')
+		select(loginEmail()).type('test@test.co')
+		select(loginPassword()).type('testing')
 		cy.contains('Login').click()
 		cy.contains('Wrong username')
 
@@ -21,21 +29,16 @@ describe('Authentication', () => {
 		cy.contains('Create a new account').click()
 		cy.contains('Error').should('not.exist')
 		cy.contains('Register')
-		cy.get('[placeholder*="name"]').type('Test User')
-		cy.get('[type="email"]').should('have.value', 'test@test.co')
-		cy.get('[type="password"]')
-			.eq(0)
-			.should('have.value', 'testing')
-		cy.get('[type="password"]')
-			.eq(1)
-			.type('not-testing')
+		select(registerUserName()).type('Test User')
+		select(loginEmail()).should('have.value', 'test@test.co')
+		select(loginPassword()).should('have.value', 'testing')
+		select(registerConfirmPassword()).type('not-testing')
 		cy.contains('button', 'Register').should('have.attr', 'disabled')
 		cy.contains('Error').should('not.exist')
 		cy.contains(`Passwords don't match`).should('be.visible')
 
 		// should work if passwords match
-		cy.get('[type="password"]')
-			.eq(1)
+		select(registerConfirmPassword())
 			.clear()
 			.type('testing')
 		cy.contains(`Passwords don't match`).should('not.be.visible')
@@ -63,8 +66,8 @@ describe('Authentication', () => {
 		cy.location('pathname').should('eq', '/login')
 		cy.contains('Sign in')
 		cy.contains('Error').should('not.exist')
-		cy.get('[type="email"]').type('test@test.co')
-		cy.get('[type="password"]').type('testing')
+		select(loginEmail()).type('test@test.co')
+		select(loginPassword()).type('testing')
 		cy.contains('Login').click()
 		cy.location('pathname').should('eq', '/')
 
@@ -76,14 +79,10 @@ describe('Authentication', () => {
 		// should not allow registration with the same email address
 		cy.contains('Logout').click()
 		cy.contains('Create a new account').click()
-		cy.get('[placeholder*="name"]').type('Test User')
-		cy.get('[type="email"]').type('test@test.co')
-		cy.get('[type="password"]')
-			.eq(0)
-			.type('testing')
-		cy.get('[type="password"]')
-			.eq(1)
-			.type('testing')
+		select(registerUserName()).type('Test User')
+		select(loginEmail()).type('test@test.co')
+		select(loginPassword()).type('testing')
+		select(registerConfirmPassword()).type('testing')
 		cy.contains('button', 'Register').click()
 		cy.contains('user already exists')
 	})

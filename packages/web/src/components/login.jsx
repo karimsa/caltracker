@@ -4,6 +4,7 @@ import { Redirect } from 'react-router-dom'
 import { User } from '../models/user'
 import { useAsyncAction } from '../state'
 import { setAuthToken, setFirstLogin } from '../models/axios'
+import * as DataTest from '../test'
 
 export function isEmailValid(email) {
 	const atLoc = email.indexOf('@')
@@ -70,6 +71,7 @@ export function Login() {
 								<div className="form-group row">
 									<div className="col">
 										<select
+											data-test={DataTest.registerUserType()}
 											className="form-control"
 											value={userType}
 											onChange={evt => setUserType(evt.target.value)}
@@ -85,6 +87,7 @@ export function Login() {
 								<div className="form-group row">
 									<div className="col">
 										<input
+											data-test={DataTest.registerUserName()}
 											type="text"
 											className={'form-control' + (name ? ' is-valid' : '')}
 											placeholder="Full name"
@@ -98,6 +101,7 @@ export function Login() {
 							<div className="form-group row">
 								<div className="col">
 									<input
+										data-test={DataTest.loginEmail()}
 										type="email"
 										className={
 											'form-control' +
@@ -118,6 +122,7 @@ export function Login() {
 							<div className="form-group row">
 								<div className="col">
 									<input
+										data-test={DataTest.loginPassword()}
 										type="password"
 										className={'form-control' + (password ? ' is-valid' : '')}
 										placeholder="Password"
@@ -134,6 +139,7 @@ export function Login() {
 								<div className="form-group row">
 									<div className="col">
 										<input
+											data-test={DataTest.registerConfirmPassword()}
 											type="password"
 											className={
 												'form-control' +
@@ -159,6 +165,7 @@ export function Login() {
 								<div className="form-group row">
 									<div className="col">
 										<input
+											data-test={DataTest.registerNumCalories()}
 											type="number"
 											className="form-control"
 											min="1"
@@ -173,6 +180,7 @@ export function Login() {
 							<div className="form-group row justify-content-center">
 								<div className="col-auto">
 									<button
+										data-test={DataTest.btnLoginSubmit()}
 										type="submit"
 										className="btn btn-primary"
 										disabled={
