@@ -65,5 +65,15 @@ describe('Authentication', () => {
 		cy.reload()
 		cy.location('pathname').should('eq', '/')
 		cy.contains('Welcome back, Test User!')
+
+		// should not allow registration with the same email address
+		cy.contains('Logout').click()
+		cy.contains('Create a new account').click()
+		cy.get('[placeholder*="name"]').type('Test User')
+		cy.get('[type="email"]').type('test@test.co')
+		cy.get('[type="password"]').eq(0).type('testing')
+		cy.get('[type="password"]').eq(1).type('testing')
+		cy.contains('button', 'Register').click()
+		cy.contains('user already exists')
 	})
 })
