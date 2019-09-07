@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "caltracker-root",
+			"path": "."
+		},
+		{
+			"name": "caltracker-api",
+			"path": "./packages/api"
+		},
+		{
+			"name": "caltracker-web",
+			"path": "./packages/web"
+		}
+	],
+	"settings": {}
+}
