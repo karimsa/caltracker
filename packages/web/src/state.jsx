@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const kPromise = Symbol('kPromise')
 
@@ -12,53 +12,24 @@ function useReducer(reducer, initialState) {
 }
 
 export function useAsync(fn) {
-	const [state, dispatch] = useReducer((_, action) => {
-		switch (action.type) {
-			case 'FETCH':
-				return {
-					status: 'inprogress',
-					result: state.result,
-					promise: fn()
-						.then(result => dispatch({ type: 'SET_RESULT', result }))
-						.catch(error => dispatch({ type: 'ERROR', error })),
-				}
-
-			case 'SET_RESULT':
-				return {
-					status: 'success',
-					result: action.result,
-				}
-
-			case 'ERROR':
-				return {
-					status: 'error',
-					error: action.error,
-				}
-
-			default:
-				throw new Error(`Unexpected action received by reducer: ${action.type}`)
-		}
-	}, {
-		status: 'idle',
-	})
+	const [state, actions] = useAsyncAction(fn)
 	if (state.status === 'idle') {
-		dispatch({ type: 'FETCH' })
+		actions.fetch()
 	}
 	return state
 }
 
 export function useAsyncAction(fn) {
+	const [asyncArgs, setAsyncArgs] = useState()
 	const [state, dispatch] = useReducer((state, action) => {
 		switch (action.type) {
 			case 'FETCH':
 				if (state.status === 'inprogress') {
 					throw new Error(`Cannot re-fetch async action that is already inprogress`)
 				}
+				setAsyncArgs(action.args)
 				return {
 					status: 'inprogress',
-					[kPromise]: fn(...action.args)
-						.then(result => dispatch({ type: 'SET_RESULT', result }))
-						.catch(error => dispatch({ type: 'ERROR', error })),
 				}
 
 			case 'SET_RESULT':
@@ -89,6 +60,28 @@ export function useAsyncAction(fn) {
 	}, {
 		status: 'idle',
 	})
+	useEffect(() => {
+		if (asyncArgs) {
+			let canceled = false
+			const promise = fn(...asyncArgs)
+			promise.then(result => {
+				if (!canceled) {
+					dispatch({ type: 'SET_RESULT', result })
+				}
+			}).catch(error => {
+				if (!canceled) {
+					dispatch({ type: 'ERROR', error })
+				}
+			})
+
+			return () => {
+				if (promise.cancel) {
+					promise.cancel()
+				}
+				canceled = true
+			}
+		}
+	}, [asyncArgs])
 
 	return [state, {
 		fetch: (...args) => dispatch({ type: 'FETCH', args }),
