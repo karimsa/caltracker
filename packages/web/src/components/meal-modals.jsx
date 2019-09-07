@@ -5,12 +5,18 @@ import moment from 'moment'
 
 import { useAsyncAction } from '../state'
 import { Meal, MealShape } from '../models/meal'
+import {
+	mealModalSubmit,
+	mealModalName,
+	mealModalCalories,
+	editMealModal,
+	createMealModal,
+} from '../test'
 
 const MealModal = React.forwardRef(
 	(
 		{
-			title,
-			actionTitle,
+			modalType,
 			remoteActions,
 			remoteState,
 			mealName,
@@ -25,12 +31,7 @@ const MealModal = React.forwardRef(
 	) => {
 		if (remoteState.status === 'success') {
 			$(modalRef.current)
-				.one('hidden.bs.modal', () => {
-					setMealName('')
-					setNumCalories('')
-					onClose()
-					remoteActions.reset()
-				})
+				.one('hidden.bs.modal', onClose)
 				.modal('hide')
 		}
 
@@ -48,6 +49,9 @@ const MealModal = React.forwardRef(
 
 		return (
 			<div
+				data-test={
+					modalType === 'create' ? createMealModal() : editMealModal(mealName)
+				}
 				className="modal fade"
 				tabIndex="-1"
 				role="dialog"
@@ -58,7 +62,9 @@ const MealModal = React.forwardRef(
 				<div className="modal-dialog" role="document">
 					<div className="modal-content">
 						<div className="modal-header">
-							<h5 className="modal-title">{title}</h5>
+							<h5 className="modal-title">
+								{modalType === 'create' ? 'Add meal' : 'Edit meal'}
+							</h5>
 							<button className="close" aria-label="Close" onClick={closeModal}>
 								<span aria-hidden="true">&times;</span>
 							</button>
@@ -76,6 +82,7 @@ const MealModal = React.forwardRef(
 									<label className="col-sm-2 col-form-label">Name</label>
 									<div className="col-sm-10">
 										<input
+											data-test={mealModalName(modalType)}
 											className={'form-control ' + (mealName ? 'is-valid' : '')}
 											type="text"
 											placeholder="Enter the name of your meal"
@@ -89,6 +96,7 @@ const MealModal = React.forwardRef(
 									<label className="col-sm-2 col-form-label">Calories</label>
 									<div className="col-sm-10">
 										<input
+											data-test={mealModalCalories(modalType)}
 											className={
 												'form-control ' +
 												(typeof numCalories === 'number'
@@ -146,6 +154,7 @@ const MealModal = React.forwardRef(
 								Close
 							</button>
 							<button
+								data-test={mealModalSubmit(modalType)}
 								className="btn btn-primary"
 								onClick={submitForm}
 								disabled={
@@ -155,7 +164,7 @@ const MealModal = React.forwardRef(
 									Math.floor(numCalories) !== numCalories
 								}
 							>
-								{actionTitle}
+								{modalType === 'create' ? 'Add' : 'Save'}
 							</button>
 						</div>
 					</div>
@@ -178,8 +187,7 @@ MealModal.propTypes = {
 	setNumCalories: PropTypes.func.isRequired,
 	createdAt: PropTypes.string.isRequired,
 	setCreatedAt: PropTypes.func.isRequired,
-	title: PropTypes.string.isRequired,
-	actionTitle: PropTypes.string.isRequired,
+	modalType: PropTypes.string.isRequired,
 	onClose: PropTypes.func.isRequired,
 }
 
@@ -202,8 +210,7 @@ export const CreateMealModal = React.forwardRef(({ onClose }, modalRef) => {
 	return (
 		<MealModal
 			ref={modalRef}
-			title="Add meal"
-			actionTitle="Add"
+			modalType="create"
 			mealName={mealName}
 			setMealName={setMealName}
 			numCalories={numCalories}
@@ -238,8 +245,7 @@ export const EditMealModal = React.forwardRef(({ meal, onClose }, modalRef) => {
 	return (
 		<MealModal
 			ref={modalRef}
-			title="Edit meal"
-			actionTitle="Save"
+			modalType="edit"
 			mealName={mealName}
 			setMealName={setMealName}
 			numCalories={numCalories}

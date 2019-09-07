@@ -9,6 +9,7 @@ import { getCurrentUserID, isFirstLogin } from '../models/axios'
 import { useAsyncAction } from '../state'
 import { Meal, MealShape } from '../models/meal'
 import { Pagination } from './pagination'
+import { btnMealEdit, editMealModal, btnMealDelete } from '../test'
 
 function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 	const [deleteMealState, deleteMealActions] = useAsyncAction(async meal => {
@@ -43,6 +44,7 @@ function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 			)}
 			<td>
 				<button
+					data-test={btnMealEdit(meal.name)}
 					className="btn btn-success"
 					disabled={isLoading}
 					onClick={evt => {
@@ -53,6 +55,7 @@ function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 					Edit
 				</button>
 				<button
+					data-test={btnMealDelete(meal.name)}
 					className="btn btn-danger ml-2"
 					disabled={isLoading}
 					onClick={evt => {
@@ -113,6 +116,7 @@ export function MealDashboard() {
 	const editMealModalRef = React.createRef()
 
 	// local state
+	const [createModalIsOpen, setCreateModalIsOpen] = useState()
 	const [calsPerDay] = useState(new Map())
 	const [pageNumber, setPageNumber] = useState(0)
 	const [sortBy, setSortBy] = useState('createdAt')
@@ -173,7 +177,11 @@ export function MealDashboard() {
 
 	// side effects
 	useEffect(() => {
-		if (currentUser.result && mealListState.status !== 'inprogress') {
+		if (
+			currentUser.result &&
+			mealListState.status !== 'inprogress' &&
+			!mealToEdit
+		) {
 			mealListActions.fetch()
 		}
 		return () => mealListActions.cancel()
@@ -185,6 +193,7 @@ export function MealDashboard() {
 		filterDateStart,
 		filterDateEnd,
 		pageNumber,
+		mealToEdit,
 	])
 	useEffect(() => {
 		if (mealToEdit && editMealModalRef.current) {
@@ -192,6 +201,12 @@ export function MealDashboard() {
 			return () => $(editMealModalRef.current).modal('hide')
 		}
 	}, [mealToEdit, editMealModalRef.current])
+	useEffect(() => {
+		if (createModalIsOpen && createMealModalRef.current) {
+			$(createMealModalRef.current).modal('show')
+			return () => $(createMealModalRef.current).modal('hide')
+		}
+	}, [createModalIsOpen, createMealModalRef.current])
 
 	// computed state
 	const isEmpty =
@@ -258,9 +273,7 @@ export function MealDashboard() {
 				<div className="col-auto text-right">
 					<button
 						className="btn btn-sm btn-primary"
-						onClick={() => {
-							$(createMealModalRef.current).modal('show')
-						}}
+						onClick={() => setCreateModalIsOpen(true)}
 					>
 						Add meal
 					</button>
@@ -526,87 +539,90 @@ export function MealDashboard() {
 				</div>
 			</div>
 
-			<CreateMealModal
-				onClose={newMeal => {
-					if (newMeal) {
-						newMeal.user = currentUser.result.data
+			{createModalIsOpen && (
+				<CreateMealModal
+					onClose={newMeal => {
+						if (newMeal) {
+							newMeal.user = currentUser.result.data
 
-						if (mealListState.result.meals.length === 0) {
-							const meals = [newMeal]
-							resetCalsPerDay({ calsPerDay, meals, currentUser })
-							mealListActions.forceSet({
-								hasNextPage: false,
-								meals,
-							})
-						} else {
-							const createdAt = Number(new Date(newMeal.createdAt))
-							const firstResultCreated = Number(
-								new Date(mealListState.result.meals[0].createdAt),
-							)
-							const lastResultCreated = Number(
-								new Date(
-									mealListState.result.meals[
-										mealListState.result.meals.length - 1
-									].createdAt,
-								),
-							)
+							if (mealListState.result.meals.length === 0) {
+								const meals = [newMeal]
+								resetCalsPerDay({ calsPerDay, meals, currentUser })
+								mealListActions.forceSet({
+									hasNextPage: false,
+									meals,
+								})
+							} else {
+								const createdAt = Number(new Date(newMeal.createdAt))
+								const firstResultCreated = Number(
+									new Date(mealListState.result.meals[0].createdAt),
+								)
+								const lastResultCreated = Number(
+									new Date(
+										mealListState.result.meals[
+											mealListState.result.meals.length - 1
+										].createdAt,
+									),
+								)
 
-							// At a bare minimum, we need to ensure that the date range for the new item
-							// was not on a previous page. If it was, no insertion needs to occur.
-							// If it is not, then we can insert if there is room on this page. Otherwise
-							// we need to ensure that it complies to the max date range as well.
-							if (itemIsGreater(sortOrder, firstResultCreated, createdAt)) {
-								if (
-									mealListState.result.meals.length < mealsPerPage ||
-									itemIsGreater(sortOrder, createdAt, lastResultCreated)
-								) {
-									let hasNextPage = mealListState.result.hasNextPage
-									const meals = [...mealListState.result.meals]
-									let i = 0
-									for (; i < meals.length; ++i) {
-										const itemCreated = Number(
-											new Date(mealListState.result.meals[i].createdAt),
-										)
-										if (itemIsGreater(sortOrder, createdAt, itemCreated)) {
-											break
+								// At a bare minimum, we need to ensure that the date range for the new item
+								// was not on a previous page. If it was, no insertion needs to occur.
+								// If it is not, then we can insert if there is room on this page. Otherwise
+								// we need to ensure that it complies to the max date range as well.
+								if (itemIsGreater(sortOrder, firstResultCreated, createdAt)) {
+									if (
+										mealListState.result.meals.length < mealsPerPage ||
+										itemIsGreater(sortOrder, createdAt, lastResultCreated)
+									) {
+										let hasNextPage = mealListState.result.hasNextPage
+										const meals = [...mealListState.result.meals]
+										let i = 0
+										for (; i < meals.length; ++i) {
+											const itemCreated = Number(
+												new Date(mealListState.result.meals[i].createdAt),
+											)
+											if (itemIsGreater(sortOrder, createdAt, itemCreated)) {
+												break
+											}
 										}
-									}
-									meals.splice(i, 0, newMeal)
+										meals.splice(i, 0, newMeal)
 
+										if (meals.length > mealsPerPage) {
+											hasNextPage = true
+											meals.pop()
+										}
+
+										resetCalsPerDay({ calsPerDay, meals, currentUser })
+										mealListActions.forceSet({
+											hasNextPage,
+											meals,
+										})
+									}
+								} else if (pageNumber === 0) {
+									let hasNextPage = mealListState.result.hasNextPage
+									const meals = [newMeal, ...mealListState.result.meals]
 									if (meals.length > mealsPerPage) {
 										hasNextPage = true
 										meals.pop()
 									}
 
 									resetCalsPerDay({ calsPerDay, meals, currentUser })
-									mealListActions.forceSet({
-										hasNextPage,
-										meals,
-									})
+									mealListActions.forceSet({ hasNextPage, meals })
 								}
-							} else if (pageNumber === 0) {
-								let hasNextPage = mealListState.result.hasNextPage
-								const meals = [newMeal, ...mealListState.result.meals]
-								if (meals.length > mealsPerPage) {
-									hasNextPage = true
-									meals.pop()
-								}
-
-								resetCalsPerDay({ calsPerDay, meals, currentUser })
-								mealListActions.forceSet({hasNextPage,meals})
 							}
 						}
-					}
-				}}
-				ref={createMealModalRef}
-			/>
+
+						setCreateModalIsOpen(false)
+					}}
+					dataTest="meal-modal-create"
+					ref={createMealModalRef}
+				/>
+			)}
 			{mealToEdit && (
 				<EditMealModal
+					dataTest={editMealModal(mealToEdit.name)}
 					meal={mealToEdit}
-					onClose={() => {
-						setMealToEdit(null)
-						mealListActions.fetch()
-					}}
+					onClose={() => setMealToEdit()}
 					ref={editMealModalRef}
 				/>
 			)}
