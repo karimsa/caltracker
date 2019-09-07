@@ -67,6 +67,13 @@ apiRouter.use(async (_, __, next) => {
 	next()
 })
 
+const startTime = Date.now()
+apiRouter.get('/status', (_, res) => {
+	res.json({
+		uptime: Date.now() - startTime,
+	})
+})
+
 if (Config.isTestEnv) {
 	apiRouter.post(
 		'/reset-db',
