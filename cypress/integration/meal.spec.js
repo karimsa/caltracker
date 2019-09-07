@@ -43,9 +43,11 @@ function createMeal({ name, numCalories }) {
 	select(createMealModal()).should('not.exist')
 }
 
-// function logout() {
-// 	cy.contains('Logout').click()
-// }
+function deleteMeal(name) {
+	select(btnMealDelete(name)).click()
+	cy.wait('@deleteMeal')
+}
+
 
 // function loginAsUser(type) {
 // 	cy.visit('http://localhost:1234/')
@@ -56,6 +58,8 @@ function createMeal({ name, numCalories }) {
 // }
 
 describe('Meals', () => {
+	let confirm
+
 	beforeEach(() => {
 		cy.request('POST', 'http://localhost:8080/api/v0/reset-db')
 		cy.clearCookies()
@@ -76,8 +80,11 @@ describe('Meals', () => {
 			cy.stub(win.console, 'error', error => {
 				printError(error)
 				expect(error).not.to.exist()
-			})
+			}).as('console.error')
 		})
+
+		confirm = cy.spy().as('window.confirm')
+		cy.on('window:confirm', confirm)
 	})
 
 	it('should allow creating meals for your own account', () => {
@@ -107,7 +114,7 @@ describe('Meals', () => {
 		cy.contains(`+98 calories`) // over by 98, since 1 cal is the default max
 
 		// deleting should remove the item from the table
-		select(btnMealDelete('test meal (updated)')).click()
+		deleteMeal('test meal (updated)')
 		cy.contains('test meal').should('not.exist')
 		cy.contains(`You don't have any meals yet`)
 	})
@@ -223,5 +230,28 @@ describe('Meals', () => {
 					.should('have.class', 'disabled')
 			}
 		}
+
+		// deleting item 6 should take us back a page
+		deleteMeal('test meal 6')
+		cy.contains('test meal 6').should('not.exist')
+		select(pageNumber()).should('contain', 'Page 3')
+		select(btnNextPage())
+			.parent()
+			.should('have.class', 'disabled')
+
+		// deleting item 3 & 5 should remove the next page
+		deleteMeal('test meal 5') // delete 5 on page 3
+		select(btnPrevPage()).click() // go back to page 2, which has meals 2 and 3
+		cy.wait('@fetchMeals')
+		select(pageNumber()).should('contain', 'Page 2')
+		deleteMeal('test meal 3') // delete 3
+		cy.wait('@fetchMeals')
+		select(pageNumber()).should('contain', 'Page 2') // still on page 2, which should still have 2 but should pull back 4
+		select(mealRows())
+			.eq(0)
+			.should('contain', 'test meal 2')
+		select(mealRows())
+			.eq(1)
+			.should('contain', 'test meal 4')
 	})
 })

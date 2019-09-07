@@ -495,16 +495,40 @@ export function MealDashboard() {
 											calsPerDay={calsPerDay.get(meal.dayID)}
 											onEdit={setMealToEdit}
 											onDelete={() => {
+												// Cases:
+												//   Deleted last item on this page & there are previous pages -> go back a page
+												if (
+													mealListState.result.meals.length === 1 &&
+													pageNumber > 0
+												) {
+													setPageNumber(pageNumber - 1)
+												}
+												//   Deleted last item on this page & this is the first page, and there are other pages
+												else if (
+													mealListState.result.meals.length === 1 &&
+													pageNumber > 0
+												) {
+													mealListActions.fetch()
+												}
+												//   There are more pages ahead -> invalidates current page.
+												else if (
+													mealListState.result.meals.length - 1 <
+													mealsPerPage
+												) {
+													mealListActions.fetch()
+												}
+												//   There are no more pages ahead -> simply filter the page.
+												else if (!mealListState.result.hasNextPage) {
 												const meals = mealListState.result.meals.filter(
 													item => {
 														return item !== meal
 													},
 												)
-
 												mealListActions.forceSet({
 													hasNextPage: mealListState.result.hasNextPage,
 													meals,
 												})
+												}
 											}}
 											onError={setError}
 										/>
