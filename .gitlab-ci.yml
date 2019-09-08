@@ -1,8 +1,0 @@
-image: node:8
-services:
-  - mongo:4
-  - redis:5
-job:
-  script:
-    - npx @karimsa/mono
-    - MONGO_URI=mongodb://mongo/caltracker-test REDIS_HOST=redis npx @karimsa/mono test
