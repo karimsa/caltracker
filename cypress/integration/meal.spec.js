@@ -5,8 +5,6 @@ import {
 	mealModalSubmit,
 	mealModalName,
 	mealModalCalories,
-	btnMealDelete,
-	createMealModal,
 	mealRows,
 	btnMealRowSort,
 	mealRowCalDiff,
@@ -14,65 +12,18 @@ import {
 	pageNumber,
 	btnPrevPage,
 	btnNextPage,
-	registerUserType,
-	registerUserName,
-	loginEmail,
-	loginPassword,
-	registerConfirmPassword,
 	btnIncludeAllMeals,
-	registerNumCalories,
 	mealRowNumCalories,
 	userCalorieGoal,
 	selectAll,
 } from '../../packages/web/src/test'
-
-function createUser(type, numCalories = 1) {
-	cy.visit('http://localhost:1234/')
-	cy.contains('Create a new account').click()
-	cy.contains('Register')
-	select(registerUserType()).select(type)
-	select(registerUserName()).type(
-		`${type[0].toUpperCase()}${type.substr(1)} User`,
-	)
-	select(loginEmail()).type(`${type}@${type}.co`)
-	select(loginPassword()).type('testing')
-	select(registerConfirmPassword()).type('testing')
-	select(registerNumCalories())
-		.clear()
-		.type(String(numCalories))
-	cy.contains('button', 'Register').click()
-	cy.wait('@createUser')
-}
-
-function createMeal({ name, numCalories }) {
-	cy.contains('Add meal').click()
-	select(createMealModal()).should('have.class', 'show')
-	select(mealModalSubmit('create')).should('have.attr', 'disabled')
-	cy.get('[placeholder*="name of your meal"]').type(name)
-	select(mealModalSubmit('create')).should('have.attr', 'disabled')
-	cy.get('[placeholder*="number of calories"]').type(String(numCalories))
-	select(mealModalSubmit('create')).click()
-	cy.wait('@createMeal')
-	select(createMealModal()).should('not.have.class', 'show')
-	select(createMealModal()).should('not.exist')
-}
-
-function deleteMeal(name) {
-	select(btnMealDelete(name)).click()
-	cy.wait('@deleteMeal')
-}
-
-function logout() {
-	cy.contains('Logout').click()
-}
-
-// function loginAsUser(type) {
-// 	cy.visit('http://localhost:1234/')
-// 	cy.contains('Sign in')
-// 	cy.get('[type="email"]').type(`${type}@${type}.co`)
-// 	cy.get('[type="password"]').type('testing')
-// 	cy.contains('button', 'Login').click()
-// }
+import {
+	createUser,
+	deleteMeal,
+	createMeal,
+	logout,
+	updateMeal,
+} from './helpers'
 
 describe('Meals', () => {
 	let confirm
@@ -93,16 +44,10 @@ describe('Meals', () => {
 		cy.contains(`+99 calories`) // over by 99, since 1 cal is the default max
 
 		// should be able to edit the entry
-		select(btnMealEdit('test meal')).click()
-		cy.contains('Edit meal')
-		select(editMealModal('test meal')).should('have.class', 'show')
-		select(mealModalSubmit('update')).should('not.have.attr', 'disabled')
-		select(mealModalName('edit')).should('have.value', 'test meal')
-		select(mealModalName('edit')).type(' (updated)')
-		select(mealModalCalories('edit'))
-			.clear()
-			.type('99')
-		select(mealModalSubmit('edit')).click()
+		updateMeal('test meal', {
+			name: 'test meal (updated)',
+			numCalories: 99,
+		})
 
 		// update should show up in the list
 		cy.contains('test meal (updated)')

@@ -1,0 +1,79 @@
+import {
+	select,
+	mealModalSubmit,
+	btnMealDelete,
+	createMealModal,
+	registerUserType,
+	registerUserName,
+	loginEmail,
+	loginPassword,
+	registerConfirmPassword,
+	registerNumCalories,
+	btnMealEdit,
+	editMealModal,
+	mealModalName,
+	mealModalCalories,
+} from '../../packages/web/src/test'
+
+export function createUser(type, numCalories = 1) {
+	cy.visit('http://localhost:1234/')
+	cy.contains('Create a new account').click()
+	cy.contains('Register')
+	select(registerUserType()).select(type)
+	select(registerUserName()).type(
+		`${type[0].toUpperCase()}${type.substr(1)} User`,
+	)
+	select(loginEmail()).type(`${type}@${type}.co`)
+	select(loginPassword()).type('testing')
+	select(registerConfirmPassword()).type('testing')
+	select(registerNumCalories())
+		.clear()
+		.type(String(numCalories))
+	cy.contains('button', 'Register').click()
+	cy.wait('@createUser')
+}
+
+export function createMeal({ name, numCalories }) {
+	cy.contains('Add meal').click()
+	select(createMealModal()).should('have.class', 'show')
+	select(mealModalSubmit('create')).should('have.attr', 'disabled')
+	cy.get('[placeholder*="name of your meal"]').type(name)
+	select(mealModalSubmit('create')).should('have.attr', 'disabled')
+	cy.get('[placeholder*="number of calories"]').type(String(numCalories))
+	select(mealModalSubmit('create')).click()
+	cy.wait('@createMeal')
+	select(createMealModal()).should('not.have.class', 'show')
+	select(createMealModal()).should('not.exist')
+}
+
+export function updateMeal(currentName, { name, numCalories }) {
+	select(btnMealEdit(currentName)).click()
+	cy.contains('Edit meal')
+	select(editMealModal(currentName)).should('have.class', 'show')
+	select(mealModalSubmit('update')).should('not.have.attr', 'disabled')
+	select(mealModalName('edit'))
+		.clear()
+		.type(name)
+	select(mealModalCalories('edit'))
+		.clear()
+		.type(String(numCalories))
+	select(mealModalSubmit('edit')).click()
+	cy.wait('@updateMeal')
+}
+
+export function deleteMeal(name) {
+	select(btnMealDelete(name)).click()
+	cy.wait('@deleteMeal')
+}
+
+export function logout() {
+	cy.contains('Logout').click()
+}
+
+export function loginAsUser(type) {
+	cy.visit('http://localhost:1234/')
+	cy.contains('Sign in')
+	cy.get('[type="email"]').type(`${type}@${type}.co`)
+	cy.get('[type="password"]').type('testing')
+	cy.contains('button', 'Login').click()
+}

@@ -23,6 +23,7 @@ beforeEach(() => {
 	cy.request('POST', 'http://localhost:8080/api/v0/reset-db')
 	cy.clearCookies()
 	cy.clearLocalStorage()
+	cy.visit('http://localhost:1234/')
 
 	cy.server()
 
@@ -39,6 +40,10 @@ beforeEach(() => {
 		method: 'PUT',
 		url: 'http://localhost:8080/api/v0/users/current',
 	}).as('getCurrentUser')
+	cy.route({
+		method: 'POST',
+		url: 'http://localhost:8080/api/v0/users/login',
+	}).as('login')
 
 	// Meal routes
 	cy.route({

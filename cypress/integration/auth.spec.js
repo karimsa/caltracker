@@ -7,15 +7,7 @@ import {
 } from '../../packages/web/src/test'
 
 describe('Authentication', () => {
-	beforeEach(() => {
-		cy.request('POST', 'http://localhost:8080/api/v0/reset-db')
-		cy.clearCookies()
-		cy.clearLocalStorage()
-	})
-
 	it('should allow registration', () => {
-		cy.visit('http://localhost:1234/')
-
 		// try logging in, it should fail
 		cy.location('pathname').should('eq', '/login')
 		cy.contains('Sign in')
@@ -45,6 +37,7 @@ describe('Authentication', () => {
 		cy.contains('Error').should('not.exist')
 		cy.contains('button', 'Register').should('not.have.attr', 'disabled')
 		cy.contains('button', 'Register').click()
+		cy.wait('@createUser')
 
 		// should take you back home
 		cy.location('pathname').should('eq', '/')
@@ -69,6 +62,7 @@ describe('Authentication', () => {
 		select(loginEmail()).type('test@test.co')
 		select(loginPassword()).type('testing')
 		cy.contains('Login').click()
+		cy.wait('@login')
 		cy.location('pathname').should('eq', '/')
 
 		// should stay logged in
@@ -84,6 +78,7 @@ describe('Authentication', () => {
 		select(loginPassword()).type('testing')
 		select(registerConfirmPassword()).type('testing')
 		cy.contains('button', 'Register').click()
+		cy.wait('@createUser')
 		cy.contains('user already exists')
 	})
 })
