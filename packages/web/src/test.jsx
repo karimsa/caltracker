@@ -25,11 +25,17 @@ export const createMealModal = () => `create-meal-modal`
 export const mealModalSubmit = type => `${type}-meal-modal-submit`
 export const mealModalName = type => `${type}-meal-modal-name`
 export const mealModalCalories = type => `${type}-meal-modal-calories`
+export const mealModalCreated = type => `${type}-meal-modal-createdat`
+
+// Meal filters
+export const userCalorieGoal = () => `user-calorie-goal`
+export const filterDateStart = () => `filter-date-start`
+export const filterDateEnd = () => `filter-date-end`
 
 // Meal table
-export const userCalorieGoal = () => `user-calorie-goal`
 export const mealRows = () => `table-meal-row`
 export const btnMealRowSort = order => `meal-sort-${order}`
+export const mealRowName = name => `meal-row-name-${clean(name)}`
 export const mealRowCalDiff = name => `meal-row-cal-diff-${clean(name)}`
 export const btnIncludeAllMeals = type => `btn-include-all-meals-${type}`
 export const mealRowNumCalories = name => `meal-row-num-calories-${clean(name)}`

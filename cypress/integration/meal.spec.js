@@ -1,10 +1,5 @@
 import {
 	select,
-	btnMealEdit,
-	editMealModal,
-	mealModalSubmit,
-	mealModalName,
-	mealModalCalories,
 	mealRows,
 	btnMealRowSort,
 	mealRowCalDiff,
@@ -16,6 +11,9 @@ import {
 	mealRowNumCalories,
 	userCalorieGoal,
 	selectAll,
+	filterDateStart,
+	mealRowName,
+	filterDateEnd,
 } from '../../packages/web/src/test'
 import {
 	createUser,
@@ -24,6 +22,9 @@ import {
 	logout,
 	updateMeal,
 } from './helpers'
+
+const UNIX_ONE_MIN = 1000 * 60
+const UNIX_ONE_DAY = UNIX_ONE_MIN * 60 * 24
 
 describe('Meals', () => {
 	let confirm
@@ -285,5 +286,76 @@ describe('Meals', () => {
 			'have.class',
 			'bg-danger',
 		)
+	})
+
+	it('should allow filtering by date range', () => {
+		createUser('normal')
+
+		const now = Date.now()
+
+		createMeal({
+			name: '1',
+			numCalories: 100,
+			createdAt: new Date(now),
+		})
+		createMeal({
+			name: '2',
+			numCalories: 100,
+			createdAt: new Date(now + UNIX_ONE_DAY),
+		})
+		createMeal({
+			name: '3',
+			numCalories: 100,
+			createdAt: new Date(now + UNIX_ONE_DAY * 2),
+		})
+
+		// all 3 meals have exceeded the limit for their day, but not
+		// cummulatively
+		for (let i = 0; i < 3; ++i) {
+			select(mealRowCalDiff(String(i + 1))).should('contain', '+99 calories')
+		}
+
+		// all items should be shown
+		select(mealRows()).should('have.length', 3)
+
+		// push the date forward
+		select(filterDateStart()).setDate(new Date(now + UNIX_ONE_DAY))
+		cy.wait('@fetchMeals')
+
+		// filter to 2 & 3
+		select(mealRowName('1')).should('not.exist')
+		select(mealRowName('2'))
+		select(mealRowName('3'))
+		select(mealRows()).should('have.length', 2)
+		select(filterDateEnd()).setDate(new Date(UNIX_ONE_MIN + now + UNIX_ONE_DAY))
+		cy.wait('@fetchMeals')
+
+		// only 2 should be there
+		select(mealRowName('1')).should('not.exist')
+		select(mealRowName('2'))
+		select(mealRowName('3')).should('not.exist')
+		select(mealRows()).should('have.length', 1)
+
+		// filter to only 1
+		select(filterDateStart()).setDate(new Date(now))
+		cy.wait('@fetchMeals')
+		select(filterDateEnd()).setDate(new Date(UNIX_ONE_MIN + now))
+		cy.wait('@fetchMeals')
+		select(mealRowName('1'))
+		select(mealRowName('2')).should('not.exist')
+		select(mealRowName('3')).should('not.exist')
+		select(mealRows()).should('have.length', 1)
+
+		// filter to only 3
+		select(filterDateStart()).setDate(new Date(now + UNIX_ONE_DAY * 2))
+		cy.wait('@fetchMeals')
+		select(filterDateEnd()).setDate(
+			new Date(UNIX_ONE_MIN + now + UNIX_ONE_DAY * 2),
+		)
+		cy.wait('@fetchMeals')
+		select(mealRowName('1')).should('not.exist')
+		select(mealRowName('2')).should('not.exist')
+		select(mealRowName('3'))
+		select(mealRows()).should('have.length', 1)
 	})
 })

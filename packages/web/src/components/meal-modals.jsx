@@ -5,13 +5,7 @@ import moment from 'moment'
 
 import { useAsyncAction } from '../state'
 import { Meal, MealShape } from '../models/meal'
-import {
-	mealModalSubmit,
-	mealModalName,
-	mealModalCalories,
-	editMealModal,
-	createMealModal,
-} from '../test'
+import * as DataTest from '../test'
 
 const MealModal = React.forwardRef(
 	(
@@ -50,7 +44,9 @@ const MealModal = React.forwardRef(
 		return (
 			<div
 				data-test={
-					modalType === 'create' ? createMealModal() : editMealModal(mealName)
+					modalType === 'create'
+						? DataTest.createMealModal()
+						: DataTest.editMealModal(mealName)
 				}
 				className="modal fade"
 				tabIndex="-1"
@@ -82,7 +78,7 @@ const MealModal = React.forwardRef(
 									<label className="col-sm-2 col-form-label">Name</label>
 									<div className="col-sm-10">
 										<input
-											data-test={mealModalName(modalType)}
+											data-test={DataTest.mealModalName(modalType)}
 											className={'form-control ' + (mealName ? 'is-valid' : '')}
 											type="text"
 											placeholder="Enter the name of your meal"
@@ -96,7 +92,7 @@ const MealModal = React.forwardRef(
 									<label className="col-sm-2 col-form-label">Calories</label>
 									<div className="col-sm-10">
 										<input
-											data-test={mealModalCalories(modalType)}
+											data-test={DataTest.mealModalCalories(modalType)}
 											className={
 												'form-control ' +
 												(typeof numCalories === 'number'
@@ -129,6 +125,7 @@ const MealModal = React.forwardRef(
 									<div className="col-sm-2 col-form-label">Created</div>
 									<div className="col-sm-10">
 										<input
+											data-test={DataTest.mealModalCreated(modalType)}
 											type="datetime-local"
 											className={
 												'form-control ' +
@@ -154,7 +151,7 @@ const MealModal = React.forwardRef(
 								Close
 							</button>
 							<button
-								data-test={mealModalSubmit(modalType)}
+								data-test={DataTest.mealModalSubmit(modalType)}
 								className="btn btn-primary"
 								onClick={submitForm}
 								disabled={

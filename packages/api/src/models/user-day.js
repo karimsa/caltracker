@@ -64,6 +64,25 @@ UserDay.addMeal = async function(meal) {
 	return userDay.numCalories
 }
 
+UserDay.updateMeal = async function(oldCalories, meal) {
+	const userDay = await UserDay.findOneAndUpdate(
+		{
+			userID: meal.userID,
+			dayID: UserDay.getDayIDFromMeal(meal),
+		},
+		{
+			$inc: {
+				numCalories: meal.numCalories - oldCalories,
+			},
+		},
+		{
+			upsert: true,
+			new: true,
+		},
+	)
+	return userDay.numCalories
+}
+
 UserDay.removeMeal = async function(meal) {
 	const userDay = await UserDay.findOneAndUpdate(
 		{

@@ -80,6 +80,8 @@ apiRouter.put(
 			)
 		}
 
+		const oldCalories = meal.numCalories
+
 		if (req.body.name) {
 			meal.name = req.body.name
 		}
@@ -91,7 +93,11 @@ apiRouter.put(
 		}
 
 		await meal.save()
-		return meal
+
+		const mealData = meal.toJSON()
+		mealData.dayID = UserDay.getDayIDFromMeal(meal)
+		mealData.caloriesForDay = await UserDay.updateMeal(oldCalories, meal)
+		return mealData
 	}),
 )
 
@@ -144,7 +150,8 @@ apiRouter.get(
 
 			if (typeof minCreatedAt === 'number') {
 				query.createdAt.$gte = new Date(minCreatedAt)
-			} else if (typeof maxCreatedAt === 'number') {
+			}
+			if (typeof maxCreatedAt === 'number') {
 				query.createdAt.$lte = new Date(maxCreatedAt)
 			}
 		}

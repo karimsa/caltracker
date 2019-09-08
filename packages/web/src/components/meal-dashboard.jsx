@@ -25,7 +25,7 @@ function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 
 	return (
 		<tr data-test={DataTest.mealRows()}>
-			<td>{meal.name}</td>
+			<td data-test={DataTest.mealRowName(meal.name)}>{meal.name}</td>
 			<td
 				data-test={DataTest.mealRowNumCalories(meal.name)}
 				className={'text-white bg-' + (calsIsOver ? 'danger' : 'success')}
@@ -291,6 +291,7 @@ export function MealDashboard() {
 									</label>
 									<div className="col-sm-10">
 										<input
+											data-test={DataTest.filterDateStart()}
 											type="datetime-local"
 											className={
 												'form-control ' +
@@ -316,6 +317,7 @@ export function MealDashboard() {
 									</label>
 									<div className="col-sm-10">
 										<input
+											data-test={DataTest.filterDateEnd()}
 											type="datetime-local"
 											className={
 												'form-control ' +

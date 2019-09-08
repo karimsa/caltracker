@@ -1,25 +1,14 @@
-// ***********************************************
-// This example commands.js shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add("login", (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add("drag", { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add("dismiss", { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This is will overwrite an existing command --
-// Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+import moment from 'moment'
+
+// setDate - sets the value of a datetime-local input
+Cypress.Commands.add('setDate', { prevSubject: true }, (input, value) => {
+	for (const elm of input) {
+		elm.dispatchEvent(new Event('focus', { bubbles: true }))
+		Object.getOwnPropertyDescriptor(
+			window.HTMLInputElement.prototype,
+			'value',
+		).set.call(elm, moment(value).format('Y-MM-DD[T]HH:mm'))
+		elm.dispatchEvent(new Event('input', { bubbles: true }))
+		elm.dispatchEvent(new Event('blur', { bubbles: true }))
+	}
+})

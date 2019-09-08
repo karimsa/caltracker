@@ -16,6 +16,7 @@ module.exports = {
 	"globals": {
 		"cy": true,
 		"expect": true,
+		"Cypress": true,
 	},
 	"rules": {
 		"accessor-pairs": "error",
