@@ -11,8 +11,10 @@ const getCurrentUser = mem(() =>
 )
 
 export const User = {
-	getCurrentUser: () =>
-		getCurrentUser(getCurrentUserID() + ':' + getAuthToken()),
+	getCurrentUser: cacheBuster =>
+		getCurrentUser(
+			String(cacheBuster) + getCurrentUserID() + ':' + getAuthToken(),
+		),
 	get: data(params => axios.get('/users', { params })),
 	login: data(body => axios.post('/users/login', body)),
 	create: data(body => axios.post('/users', body)),

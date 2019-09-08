@@ -20,9 +20,13 @@ import {
 	loginPassword,
 	registerConfirmPassword,
 	btnIncludeAllMeals,
+	registerNumCalories,
+	mealRowNumCalories,
+	userCalorieGoal,
+	selectAll,
 } from '../../packages/web/src/test'
 
-function createUser(type) {
+function createUser(type, numCalories = 1) {
 	cy.visit('http://localhost:1234/')
 	cy.contains('Create a new account').click()
 	cy.contains('Register')
@@ -33,7 +37,11 @@ function createUser(type) {
 	select(loginEmail()).type(`${type}@${type}.co`)
 	select(loginPassword()).type('testing')
 	select(registerConfirmPassword()).type('testing')
+	select(registerNumCalories())
+		.clear()
+		.type(String(numCalories))
 	cy.contains('button', 'Register').click()
+	cy.wait('@createUser')
 }
 
 function createMeal({ name, numCalories }) {
@@ -44,6 +52,7 @@ function createMeal({ name, numCalories }) {
 	select(mealModalSubmit('create')).should('have.attr', 'disabled')
 	cy.get('[placeholder*="number of calories"]').type(String(numCalories))
 	select(mealModalSubmit('create')).click()
+	cy.wait('@createMeal')
 	select(createMealModal()).should('not.have.class', 'show')
 	select(createMealModal()).should('not.exist')
 }
@@ -69,28 +78,6 @@ describe('Meals', () => {
 	let confirm
 
 	beforeEach(() => {
-		cy.request('POST', 'http://localhost:8080/api/v0/reset-db')
-		cy.clearCookies()
-		cy.clearLocalStorage()
-
-		cy.server()
-		cy.route({
-			method: 'GET',
-			url: 'http://localhost:8080/api/v0/meals**',
-		}).as('fetchMeals')
-		cy.route({
-			method: 'DELETE',
-			url: 'http://localhost:8080/api/v0/meals**',
-		}).as('deleteMeal')
-
-		cy.on('window:before:load', win => {
-			const printError = win.console.error
-			cy.stub(win.console, 'error', error => {
-				printError(error)
-				expect(error).not.to.exist()
-			}).as('console.error')
-		})
-
 		confirm = cy.spy().as('window.confirm')
 		cy.on('window:confirm', confirm)
 	})
@@ -127,7 +114,7 @@ describe('Meals', () => {
 		cy.contains(`You don't have any meals yet`)
 	})
 
-	it.only('should sort meals correctly', () => {
+	it('should sort and paginate meals correctly', () => {
 		createUser('normal')
 
 		for (let i = 0; i < 7; ++i) {
@@ -140,7 +127,19 @@ describe('Meals', () => {
 					'contain',
 					`+${(i + 1) * 50 - 1} calories`,
 				)
+				select(mealRowNumCalories(`test meal ${j}`)).should(
+					'have.class',
+					'bg-danger',
+				)
 			}
+
+			select(btnPrevPage())
+				.parent()
+				.should('have.class', 'disabled')
+			select(pageNumber()).should('contain', 'Page 1')
+			select(btnNextPage())
+				.parent()
+				.should('have.class', 'disabled')
 		}
 
 		select(mealRows()).should('have.length', 7)
@@ -186,6 +185,16 @@ describe('Meals', () => {
 			.should('not.have.class', 'disabled')
 		select(pageNumber()).should('contain', 'Page 1')
 
+		// with a page size of 2, there be at most 100 calories
+		// on the same page - to test that calorie expectations work across
+		// pages, the goal is set to 150 since 2 meals will be under this but
+		// 7 will be over
+		select(userCalorieGoal())
+			.clear()
+			.type('150')
+			.blur()
+		cy.wait('@fetchMeals')
+
 		// verify order across pages
 		for (let page = 0; page < 4; ++page) {
 			// prev should only be disabled on the first page
@@ -206,6 +215,9 @@ describe('Meals', () => {
 				select(mealRows()).should('have.length', 2)
 			}
 
+			// wait for react to render
+			cy.contains(`test meal ${page * 2}`)
+
 			// sort is asc right now
 			select(mealRows())
 				.eq(0)
@@ -216,12 +228,22 @@ describe('Meals', () => {
 					.should('contain', `test meal ${page * 2 + 1}`)
 			}
 
+			// we are still over the calorie count
+			selectAll(mealRowNumCalories(`test meal`)).should(
+				'have.class',
+				'bg-danger',
+			)
+
 			// all items should still have correct differences in
 			// calorie expectation
-			cy.get(`[data-test^="${mealRowCalDiff('test meal ')}"]`).should(
-				'contain',
-				'+349 calories',
-			)
+			select(mealRowCalDiff(`test meal ${page * 2}`))
+				.eq(0)
+				.should('contain', '+349 calories')
+			if (page < 3) {
+				select(mealRowCalDiff(`test meal ${page * 2 + 1}`))
+					.eq(0)
+					.should('contain', '+349 calories')
+			}
 
 			// next should only be disabled on the last page
 			if (page < 3) {
@@ -284,5 +306,39 @@ describe('Meals', () => {
 		cy.wait('@fetchMeals')
 		cy.contains(`You don't have any meals`).should('not.exist')
 		select(mealRows()).should('have.length', 4) // started with 7, deleted 3 to test
+	})
+
+	it('should choose background colors based on calorie expectation', () => {
+		createUser('normal', 250)
+
+		createMeal({ name: 'test meal 0 for normal', numCalories: 100 })
+		createMeal({ name: 'test meal 1 for normal', numCalories: 100 })
+
+		// we're good on calories
+		select(mealRowNumCalories('test meal 0 for normal')).should(
+			'have.class',
+			'bg-success',
+		)
+		select(mealRowNumCalories('test meal 1 for normal')).should(
+			'have.class',
+			'bg-success',
+		)
+
+		// decrease the limit
+		select(userCalorieGoal())
+			.clear()
+			.type('150')
+			.blur()
+		cy.wait('@fetchMeals')
+
+		// colours should change
+		select(mealRowNumCalories('test meal 0 for normal')).should(
+			'have.class',
+			'bg-danger',
+		)
+		select(mealRowNumCalories('test meal 1 for normal')).should(
+			'have.class',
+			'bg-danger',
+		)
 	})
 })

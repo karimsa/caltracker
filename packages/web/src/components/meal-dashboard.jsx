@@ -26,7 +26,10 @@ function MealRow({ calsPerDay, meal, isAdmin, onEdit, onDelete, onError }) {
 	return (
 		<tr data-test={DataTest.mealRows()}>
 			<td>{meal.name}</td>
-			<td className={'text-white bg-' + (calsIsOver ? 'danger' : 'success')}>
+			<td
+				data-test={DataTest.mealRowNumCalories(meal.name)}
+				className={'text-white bg-' + (calsIsOver ? 'danger' : 'success')}
+			>
 				{meal.numCalories}
 			</td>
 			<td>
@@ -114,11 +117,13 @@ export function MealDashboard() {
 	const [mealsPerPage, setMealsPerPage] = useState(15)
 
 	// async state
-	const [currentUser, currentUserActions] = useAsyncAction(async () => {
-		const res = await User.getCurrentUser()
-		setDailyCalMax(res.data.dailyCalMax)
-		return res
-	})
+	const [currentUser, currentUserActions] = useAsyncAction(
+		async cacheBuster => {
+			const res = await User.getCurrentUser(cacheBuster)
+			setDailyCalMax(res.data.dailyCalMax)
+			return res
+		},
+	)
 	if (currentUser.status === 'idle') {
 		currentUserActions.fetch()
 	}
@@ -156,7 +161,7 @@ export function MealDashboard() {
 			_id: getCurrentUserID(),
 			dailyCalMax,
 		})
-		currentUserActions.fetch()
+		currentUserActions.fetch(Date.now())
 	})
 
 	// side effects
@@ -228,6 +233,7 @@ export function MealDashboard() {
 							<strong>{currentUser.result.data.name}</strong>! Your current
 							calorie intake is expected to be below{' '}
 							<input
+								data-test={DataTest.userCalorieGoal()}
 								type="number"
 								className="form-control-sm form-control d-inline meal__dashboard__cal_intake"
 								value={dailyCalMax}

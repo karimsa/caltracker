@@ -4,6 +4,10 @@ export function select(dataTest) {
 	return cy.get(`[data-test="${dataTest}"]`)
 }
 
+export function selectAll(prefix) {
+	return cy.get(`[data-test^="${prefix}"]`)
+}
+
 // Login page
 export const registerUserType = () => `register-user-type`
 export const registerUserName = () => `register-user-name`
@@ -23,10 +27,12 @@ export const mealModalName = type => `${type}-meal-modal-name`
 export const mealModalCalories = type => `${type}-meal-modal-calories`
 
 // Meal table
+export const userCalorieGoal = () => `user-calorie-goal`
 export const mealRows = () => `table-meal-row`
 export const btnMealRowSort = order => `meal-sort-${order}`
 export const mealRowCalDiff = name => `meal-row-cal-diff-${clean(name)}`
 export const btnIncludeAllMeals = type => `btn-include-all-meals-${type}`
+export const mealRowNumCalories = name => `meal-row-num-calories-${clean(name)}`
 
 // Pagination
 export const pageSize = () => `page-size`

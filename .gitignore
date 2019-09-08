@@ -12,5 +12,4 @@ coverage
 .cache
 cypress/fixtures
 cypress/plugins
-cypress/support
 cypress/videos
