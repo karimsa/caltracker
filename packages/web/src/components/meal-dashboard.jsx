@@ -534,14 +534,11 @@ export function MealDashboard() {
 													mealListActions.fetch()
 												}
 												//   There are more pages ahead -> invalidates current page.
-												else if (
-													mealListState.result.meals.length - 1 <
-													mealsPerPage
-												) {
+												else if (mealListState.result.hasNextPage) {
 													mealListActions.fetch()
 												}
 												//   There are no more pages ahead -> simply filter the page.
-												else if (!mealListState.result.hasNextPage) {
+												else {
 													const meals = mealListState.result.meals.filter(
 														item => {
 															return item !== meal
