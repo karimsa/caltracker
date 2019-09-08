@@ -182,13 +182,15 @@ describe('Meals', () => {
 
 			// all items should still have correct differences in
 			// calorie expectation
-			select(mealRowCalDiff(`test meal ${page * 2}`))
-				.eq(0)
-				.should('contain', '+349 calories')
+			select(mealRowCalDiff(`test meal ${page * 2}`)).should(
+				'contain',
+				'+200 calories',
+			)
 			if (page < 3) {
-				select(mealRowCalDiff(`test meal ${page * 2 + 1}`))
-					.eq(0)
-					.should('contain', '+349 calories')
+				select(mealRowCalDiff(`test meal ${page * 2 + 1}`)).should(
+					'contain',
+					'+200 calories',
+				)
 			}
 
 			// next should only be disabled on the last page
