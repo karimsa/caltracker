@@ -21,6 +21,7 @@ import {
 	createMeal,
 	logout,
 	updateMeal,
+	loginAsUser,
 } from './helpers'
 
 const UNIX_ONE_MIN = 1000 * 60
@@ -359,5 +360,38 @@ describe('Meals', () => {
 		select(mealRowName('2')).should('not.exist')
 		select(mealRowName('3'))
 		select(mealRows()).should('have.length', 1)
+	})
+
+	it('should allow users and admins to edit user meals', () => {
+		createUser('normal')
+
+		createMeal({
+			name: 'test meal',
+			numCalories: 100,
+		})
+		select(mealRowName('test meal'))
+
+		updateMeal('test meal', {
+			name: 'test meal (updated by user)',
+		})
+		select(mealRowName('test meal (updated by user)'))
+		select(mealRowName('test meal')).should('not.exist')
+
+		logout()
+		createUser('admin')
+		select(btnIncludeAllMeals('on')).click()
+		select(mealRowName('test meal (updated by user)'))
+		select(mealRowName('test meal')).should('not.exist')
+
+		updateMeal('test meal (updated by user)', {
+			name: 'test meal (updated by admin)',
+		})
+		select(mealRowName('test meal (updated by admin)'))
+		select(mealRowName('test meal (updated by user)')).should('not.exist')
+
+		logout()
+		loginAsUser('normal')
+		select(mealRowName('test meal (updated by admin)'))
+		select(mealRowName('test meal (updated by user)')).should('not.exist')
 	})
 })

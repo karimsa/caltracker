@@ -17,7 +17,6 @@ import {
 } from '../../packages/web/src/test'
 
 export function createUser(type, numCalories = 1) {
-	cy.visit('http://localhost:1234/')
 	cy.contains('Create a new account').click()
 	cy.contains('Register')
 	select(registerUserType()).select(type)
@@ -59,9 +58,11 @@ export function updateMeal(currentName, { name, numCalories }) {
 	select(mealModalName('edit'))
 		.clear()
 		.type(name)
-	select(mealModalCalories('edit'))
-		.clear()
-		.type(String(numCalories))
+	if (numCalories !== undefined) {
+		select(mealModalCalories('edit'))
+			.clear()
+			.type(String(numCalories))
+	}
 	select(mealModalSubmit('edit')).click()
 	cy.wait('@updateMeal')
 	cy.wait('@fetchMeals')
@@ -77,9 +78,9 @@ export function logout() {
 }
 
 export function loginAsUser(type) {
-	cy.visit('http://localhost:1234/')
 	cy.contains('Sign in')
-	cy.get('[type="email"]').type(`${type}@${type}.co`)
-	cy.get('[type="password"]').type('testing')
+	select(loginEmail()).type(`${type}@${type}.co`)
+	select(loginPassword()).type('testing')
 	cy.contains('button', 'Login').click()
+	cy.wait('@fetchMeals')
 }
