@@ -18,7 +18,7 @@ index 43253ef..a1f3bb8 100644
  const internalLogger = (0, _winston.createLogger)({
    format: _winston.format.printf(SPrint),
 -  level: Config.string('LoggingLevel', 'warn'),
-+  level: Config.string('LOGGER_LEVEL', 'warn'),
++  level: Config.string('LoggerLevel', 'warn'),
    transports: [new _winston.transports.Console()]
  });
  const formatOpts = {
