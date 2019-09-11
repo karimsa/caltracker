@@ -51,7 +51,7 @@ User.on('index', error => {
 	}
 })
 
-export function isAuthenticated(req, _, next) {
+export function isAuthenticated(req, res, next) {
 	const { userID, authToken, userType } = req.session
 	const authHeader = String(req.headers.authorization).split(' ')
 	logger.debug('caltracker:auth', 'Authenticated route hit with: %O', {
@@ -71,7 +71,12 @@ export function isAuthenticated(req, _, next) {
 		return next()
 	}
 
-	throw new APIError('User is not logged in', HTTPStatus.Unauthorized)
+	res.status(HTTPStatus.Unauthorized)
+	res.json({
+		error: 'User is not logged in',
+		displayMessage:
+			'You are not currently logged in. Please login and then try again.',
+	})
 }
 
 apiRouter.get(
