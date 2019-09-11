@@ -22,6 +22,15 @@ app.use(
 		  })
 		: morgan('dev'),
 )
+app.use((req, res, next) => {
+	if (String(req.headers['user-agent']).startsWith('curl/')) {
+		res.json = function(body) {
+			res.set('Content-Type', 'application/json')
+			res.end(JSON.stringify(body, null, '\t'))
+		}
+	}
+	next()
+})
 app.use('/api/v0', apiRouter)
 
 server.on('error', error => {
