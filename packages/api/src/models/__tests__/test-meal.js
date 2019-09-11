@@ -1,6 +1,6 @@
 import { test, expect, createApi } from '../../testing'
 
-test.only('should be able to CRUD meals', async () => {
+test('should be able to CRUD meals', async () => {
 	const api = await createApi()
 
 	const [normal, admin] = await api.createUsers(['normal', 'admin'])
