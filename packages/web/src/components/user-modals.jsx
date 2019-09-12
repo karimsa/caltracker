@@ -5,6 +5,7 @@ import $ from 'jquery'
 import { useAsyncAction } from '../state'
 import { User } from '../models/user'
 import { isEmailValid } from './login'
+import * as DataTest from '../test'
 
 const UserModal = React.forwardRef(
 	(
@@ -63,6 +64,9 @@ const UserModal = React.forwardRef(
 
 		return (
 			<div
+				data-test={
+					DataTest.modalUser(modalType)
+				}
 				className="modal fade"
 				tabIndex="-1"
 				role="dialog"
@@ -92,6 +96,7 @@ const UserModal = React.forwardRef(
 								<div className="form-group row">
 									<div className="col">
 										<select
+											data-test={DataTest.modalUserType(modalType)}
 											className="form-control"
 											value={userType}
 											onChange={evt => setUserType(evt.target.value)}
@@ -207,6 +212,7 @@ const UserModal = React.forwardRef(
 								Close
 							</button>
 							<button
+								data-test={DataTest.modalUserSubmit(modalType)}
 								className="btn btn-primary"
 								onClick={submitForm}
 								disabled={!isFormValid}
@@ -293,6 +299,7 @@ export const EditUserModal = React.forwardRef(({ user, onClose }, modalRef) => {
 	const [updateUserState, updateUserActions] = useAsyncAction(() => {
 		const updates = {
 			_id: user._id,
+			type: userType,
 			name: userName,
 			email,
 			password: undefined,
@@ -307,7 +314,7 @@ export const EditUserModal = React.forwardRef(({ user, onClose }, modalRef) => {
 	return (
 		<UserModal
 			ref={modalRef}
-			modalType="update"
+			modalType="edit"
 			userType={userType}
 			setUserType={setUserType}
 			userName={userName}

@@ -6,6 +6,7 @@ import { useAsyncAction, useAsync } from '../state'
 import { User } from '../models/user'
 import { CreateUserModal, EditUserModal } from './user-modals'
 import { isFirstLogin } from '../models/axios'
+import * as DataTest from '../test'
 
 const NUM_USERS_PER_PAGE = 15
 const USER_TYPES = {
@@ -26,12 +27,13 @@ function UserRow({ user, onUserEdit, onError, onDelete }) {
 
 	return (
 		<tr>
-			<td>{USER_TYPES[user.type]}</td>
+			<td data-test={DataTest.userRowType(user.name)}>{USER_TYPES[user.type]}</td>
 			<td>{user.name}</td>
 			<td>{user.email}</td>
 			<td>{user.dailyCalMax}</td>
 			<th>
 				<button
+					data-test={DataTest.btnEditUser(user.name)}
 					className="btn btn-success"
 					disabled={deleteUserState.status === 'inprogress'}
 					onClick={evt => {
@@ -42,6 +44,7 @@ function UserRow({ user, onUserEdit, onError, onDelete }) {
 					Edit
 				</button>
 				<button
+					data-test={DataTest.btnDeleteUser(user.name)}
 					className="btn btn-danger ml-2"
 					disabled={deleteUserState.status === 'inprogress'}
 					onClick={evt => {

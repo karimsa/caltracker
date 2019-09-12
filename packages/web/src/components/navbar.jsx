@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { removeAuthToken } from '../models/axios'
 import { User } from '../models/user'
 import { useAsync } from '../state'
+import * as DataTest from '../test'
 
 export function Navbar() {
 	const currentUser = useAsync(() => User.getCurrentUser())
@@ -38,7 +39,7 @@ export function Navbar() {
 						Meals
 					</Link>
 					{currentUser.result.data.type !== 'normal' && (
-						<Link className="nav-item nav-link" to="/users">
+						<Link data-test={DataTest.btnManageUsers()} className="nav-item nav-link" to="/users">
 							Users
 						</Link>
 					)}

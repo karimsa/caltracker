@@ -172,6 +172,7 @@ apiRouter.put(
 	isAuthenticated,
 	validateBody('body', {
 		_id: 'string!',
+		type: 'string!',
 		name: 'string',
 		email: 'string',
 		password: 'string',
@@ -196,6 +197,18 @@ apiRouter.put(
 				HTTPStatus.NotFound,
 				`Could not find user`,
 			)
+		}
+
+		if (req.body.type) {
+			if (req.session.userType === 'manager' && req.body.type === 'admin') {
+				throw new APIError(
+					`Managers cannot elevate users to admin privileges`,
+					HTTPStatus.Forbidden,
+					`Managers cannot elevate users to admin privileges`,
+				)
+			}
+
+			user.type = req.body.type
 		}
 
 		if (req.body.name) {

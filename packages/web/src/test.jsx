@@ -8,6 +8,9 @@ export function selectAll(prefix) {
 	return cy.get(`[data-test^="${prefix}"]`)
 }
 
+// Navbar
+export const btnManageUsers = () => `btn-manage-users`
+
 // Login page
 export const registerUserType = () => `register-user-type`
 export const registerUserName = () => `register-user-name`
@@ -39,6 +42,17 @@ export const mealRowName = name => `meal-row-name-${clean(name)}`
 export const mealRowCalDiff = name => `meal-row-cal-diff-${clean(name)}`
 export const btnIncludeAllMeals = type => `btn-include-all-meals-${type}`
 export const mealRowNumCalories = name => `meal-row-num-calories-${clean(name)}`
+
+// Users modals
+export const modalUser = modalType => `modal-user-${modalType}`
+export const modalEditUserSubmit = () => `modal-edit-user-submit`
+export const modalUserType = modalType => `modal-user-type-${modalType}`
+export const modalUserSubmit = modalType => `modal-user-submit-${modalType}`
+
+// Users table
+export const btnEditUser = name => `btn-edit-user-${clean(name)}`
+export const btnDeleteUser = name => `btn-delete-user-${clean(name)}`
+export const userRowType = name => `user-row-name-${clean(name)}`
 
 // Pagination
 export const pageSize = () => `page-size`
