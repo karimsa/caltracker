@@ -91,6 +91,18 @@ export function validateBody(dataType, types) {
 							`'${check.name}' is not a valid date`,
 						)
 					}
+				} else if (check.type === 'boolean') {
+					if (typeof value !== 'boolean') {
+						throw new APIError(
+							`Invalid value given for '${
+								check.name
+							}', expected true or false (got ${JSON.stringify(value)})`,
+							HTTPStatus.BadRequest,
+							`Invalid value given for '${
+								check.name
+							}', expected true or false (got ${JSON.stringify(value)})`,
+						)
+					}
 				} else {
 					throw new Error(`Cannot validate type: ${check.type}`)
 				}

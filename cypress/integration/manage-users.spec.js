@@ -6,6 +6,7 @@ import {
 	modalUserType,
 	modalUserSubmit,
 	userRowType,
+	registerUserType,
 } from '../../packages/web/src/test'
 import { createUser, logout, loginAsUser } from './helpers'
 
@@ -31,11 +32,33 @@ describe('User management', () => {
 		select(modalUserType('edit')).select('manager')
 		select(modalUserSubmit('edit')).click()
 		cy.contains('cannot elevate').should('not.exist')
-		select(modalUser('edit')).should('not.have.class', 'show')
+		cy.wait('@updateUser')
 		select(userRowType('Normal User')).should('contain', 'Manager')
 
 		logout()
 		loginAsUser('normal')
 		select(btnManageUsers())
+	})
+
+	it('should not allow selecting user type in production', () => {
+		cy.contains('Create a new account').click()
+
+		select(registerUserType())
+
+		cy.request('PUT', 'http://localhost:8080/api/v0/settings', {
+			shouldAllowCreation: false,
+		})
+
+		cy.reload()
+		cy.contains('Create a new account').click()
+		select(registerUserType()).should('not.exist')
+
+		cy.request('PUT', 'http://localhost:8080/api/v0/settings', {
+			shouldAllowCreation: true,
+		})
+
+		cy.reload()
+		cy.contains('Create a new account').click()
+		select(registerUserType())
 	})
 })

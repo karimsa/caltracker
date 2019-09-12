@@ -4,6 +4,13 @@ let authToken = localStorage.getItem('authToken')
 let userID = localStorage.getItem('userID')
 let firstLogin = false
 
+const NodeEnv = process.env.NODE_ENV || 'development'
+
+export function shouldAllowAdminCreation() {
+	const value = String(process.env.ALLOW_ADMIN_CREATION || NodeEnv === 'development')
+	return value === 'true'
+}
+
 export function isFirstLogin() {
 	return firstLogin
 }

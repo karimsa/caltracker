@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import { Redirect } from 'react-router-dom'
 
 import { User } from '../models/user'
-import { useAsyncAction } from '../state'
-import { setAuthToken, setFirstLogin } from '../models/axios'
+import { Settings } from '../models/settings'
+import { useAsyncAction, useAsync } from '../state'
+import { setAuthToken, setFirstLogin, shouldAllowAdminCreation } from '../models/axios'
 import * as DataTest from '../test'
 
 export function isEmailValid(email) {
@@ -22,6 +23,7 @@ export function Login() {
 	const [confirmPassword, setConfirmPassword] = useState('')
 	const [dailyCalMax, setDailyCalMax] = useState(1)
 	const [registerMode, setRegisterMode] = useState()
+	const settingsState = useAsync(() => Settings.get())
 	const [loginState, loginActions] = useAsyncAction(async () => {
 		if (registerMode) {
 			await User.create({
@@ -40,10 +42,27 @@ export function Login() {
 		})
 		setAuthToken(token, userID)
 	})
-	const isLoading = loginState.status === 'inprogress'
+	const isLoading = loginState.status === 'inprogress' || settingsState.status === 'inprogress'
+	const error = loginState.error
 
 	if (loginState.status === 'success') {
 		return <Redirect to="/" />
+	}
+
+	if (settingsState.error) {
+		return (
+			<div className="h-100 d-flex justify-content-between align-items-center bg-muted">
+				<div className="container">
+					<div className="row">
+						<div className="col">
+							<div className="alert alert-danger">
+								{String(settingsState.error)}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		)
 	}
 
 	return (
@@ -60,14 +79,14 @@ export function Login() {
 							<div className="form-group">
 								{registerMode ? <h2>Register</h2> : <h2>Sign in</h2>}
 							</div>
-							{loginState.status === 'error' && (
+							{error && (
 								<div className="form-group">
 									<div className="alert alert-danger">
-										{String(loginState.error)}
+										{String(error)}
 									</div>
 								</div>
 							)}
-							{registerMode && (
+							{registerMode && settingsState.result && settingsState.result.shouldAllowCreation && (
 								<div className="form-group row">
 									<div className="col">
 										<select

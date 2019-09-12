@@ -6,31 +6,7 @@ import cors from 'cors'
 import { Config } from '@karimsa/boa'
 
 import * as mongo from './services/mongoose'
-
-export function route(fn) {
-	return async (req, res) => {
-		try {
-			await mongo.Connect()
-			const body = await fn(req, res)
-			if (typeof body === 'object') {
-				res.json(body)
-			} else if (body === undefined) {
-				res.json({ status: 'ok' })
-			} else {
-				throw new Error(
-					`Routes must return a valid body (got return type of ${typeof body})`,
-				)
-			}
-		} catch (error) {
-			res.status(error.status || 500)
-			res.json({
-				status: 'error',
-				error: error.displayMessage || String(error),
-				displayMessage: Boolean(error.displayMessage),
-			})
-		}
-	}
-}
+import { route, validateBody } from './utils/http'
 
 export const sessionParser = session({
 	secret: Config.string('ServerCookieSecret'),
@@ -74,6 +50,27 @@ apiRouter.get('/status', (_, res) => {
 	})
 })
 
+export const settings = {
+	shouldAllowCreation: Config.bool(
+		'AllowAdminCreation',
+		Config.isDevelopmentEnv,
+	),
+}
+
+if (Config.isTestEnv) {
+	apiRouter.put(
+		'/settings',
+		validateBody('body', {
+			shouldAllowCreation: 'boolean!',
+		}),
+		route(req => {
+			return Object.assign(settings, req.body)
+		}),
+	)
+}
+
+apiRouter.get('/settings', route(() => settings))
+
 if (Config.isTestEnv) {
 	apiRouter.post(
 		'/reset-db',
@@ -85,6 +82,10 @@ if (Config.isTestEnv) {
 				const model = mongo.mongoose.model(name)
 				await model.ensureIndexes()
 			}
+
+			settings.shouldAllowCreation = true
+
+			return { status: 'ok' }
 		}),
 	)
 }

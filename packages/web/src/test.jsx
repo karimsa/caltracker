@@ -1,4 +1,4 @@
-const clean = text => text.replace(/[^a-z0-9]+/g, '-')
+const clean = text => text.replace(/[^a-zA-Z0-9]+/g, '-')
 
 export function select(dataTest) {
 	return cy.get(`[data-test="${dataTest}"]`)

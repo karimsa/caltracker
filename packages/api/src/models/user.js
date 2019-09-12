@@ -7,7 +7,7 @@ import { logger } from '@karimsa/boa'
 
 import { APIError, HTTPStatus, route, validateBody } from '../utils/http'
 import { createModel, required } from '../utils/mongo'
-import { apiRouter } from '../api'
+import { apiRouter, settings } from '../api'
 import { Meal } from './meal'
 
 const randomBytes = util.promisify(crypto.randomBytes)
@@ -145,6 +145,14 @@ apiRouter.post(
 	route(async req => {
 		const { type, name, email, password, dailyCalMax } = req.body
 		const passwordHash = await bcrypt.hash(password, 10)
+
+		if (type !== 'normal' && !settings.shouldAllowCreation) {
+			throw new APIError(
+				`Admin & manager users cannot be created in production env`,
+				HTTPStatus.Forbidden,
+				`Admin & manager users cannot be created in production env`,
+			)
+		}
 
 		try {
 			return await User.create({
